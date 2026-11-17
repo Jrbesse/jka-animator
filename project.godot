@@ -1,0 +1,22 @@
+; Engine configuration file.
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+;
+; Format:
+;   [section] ; section goes between []
+;   param=value ; assign value to param
+
+config_version=5
+
+[application]
+
+config/name="jka-animator"
+config/description="JKA Ghoul2 animation workstation — display the model; view/edit/add animations (animation side only). Spec: Jrbesse/openjk-support plans/jka-anim-tool-plan.md"
+config/version="0.1.0"
+run/main_scene="res://scenes/Main.tscn"
+config/features=PackedStringArray("4.7", "C#", "Forward Plus")
+
+[rendering]
+
+renderer/rendering_method="forward_plus"
+renderer/rendering_method.mobile="mobile"

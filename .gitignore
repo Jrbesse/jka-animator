@@ -1,0 +1,28 @@
+# Godot 4 auto-generated files
+.godot/
+*.uid
+
+# Mono/C# build artifacts
+.mono/
+bin/
+obj/
+*.user
+
+# Visual Studio / Rider
+.vs/
+.idea/
+*.suo
+*.sln.user
+
+# OS junk
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Godot backup files
+*.old
+*.bak
+
+# Fixtures pulled from paks (never commit mod content — sanitize policy,
+# plan decision #3; see README)
+fixtures/
