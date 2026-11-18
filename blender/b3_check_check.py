@@ -146,7 +146,7 @@ def main():
           f"ret={ret} summary={summary!r} errs={err_lines}")
 
     # 4. seeded cfg error (after the GLA repair — re-stage, then seed only)
-    shutil.rmtree(gla)
+    os.remove(gla)
     shutil.copy2(os.path.join(skel_src, f"{skeleton}.gla"), gla)
     cfg = os.path.join(dst_root, skeleton, "animation.cfg")
     with open(cfg, "a") as f:
