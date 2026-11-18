@@ -72,6 +72,6 @@ def get_animkit(animkit_dir=""):
         _LOADED_FROM = d
     # animkit/__init__ does not import the submodules — the addon reaches
     # them as attributes, so pull them in explicitly (idempotent)
-    for sub in ("animevents", "cfgwrite", "saberanims", "animtable"):
+    for sub in ("animevents", "cfgwrite", "saberanims", "animtable", "check"):
         importlib.import_module(f"animkit.{sub}")
     return mod
