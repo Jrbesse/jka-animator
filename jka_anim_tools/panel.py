@@ -9,8 +9,9 @@ Sections
 --------
 B1:  Reference (matching) / Rig / Export GLA
 B2:  Segments (animation.cfg) / Events (animevents.cfg) /
-     Saber (saberanims.cfg) / Results — driven by the cfgops.py operators
-     over the shared animkit cfg layer (decision #12).
+     Saber (saberanims.cfg) — driven by the cfgops.py operators over the
+     shared animkit cfg layer (decision #12).
+B3:  Check (animkit-check over the character/skeleton dir) / Results.
 """
 import bpy
 
@@ -297,6 +298,10 @@ class JKA_PT_Main(bpy.types.Panel):
         box.operator("jka_anim.saber_validate", icon='CHECKMARK')
         box.prop(p, "saber_preset", text="")
         box.operator("jka_anim.saber_preset_apply", icon='PLAY')
+
+        box = layout.box()
+        box.label(text="Check (Segments base path + character)")
+        box.operator("jka_anim.check_run", icon='CHECKMARK')
 
         box = layout.box()
         box.label(text="Results")

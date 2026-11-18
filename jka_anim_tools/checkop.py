@@ -32,7 +32,8 @@ class CheckResult:
         if self.ok:
             s = f"check {self.name}: OK"
             if self.warnings:
-                s += f" ({len(self.warnings)} warnings)"
+                n = len(self.warnings)
+                s += f" ({n} warning{'s' if n != 1 else ''})"
         else:
             s = (f"check {self.name}: FAILED "
                  f"({len(self.errors)} errors, {len(self.warnings)} warnings)")

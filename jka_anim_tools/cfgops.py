@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: MIT
-"""B2 operators: animation.cfg segments, animevents.cfg events, saber.
+"""B2 operators: animation.cfg segments, animevents.cfg events, saber;
+B3: the check operator (animkit-check over the character/skeleton dir).
 
 Thin delegates to the bpy-free core (anims.py — one source of logic,
 B1 pattern) plus the Blender-side NLA glue (nla.py). The headless
@@ -12,7 +13,7 @@ report via self.report() + the scene's results collection.
 """
 import bpy
 
-from . import addon_bridge, animkit_bridge, anims, nla
+from . import addon_bridge, animkit_bridge, anims, checkop, nla
 from .common import JkaError
 
 
@@ -507,6 +508,35 @@ class JKA_OT_SaberPresetApply(bpy.types.Operator):
             return {'CANCELLED'}
 
 
+# ---------------------------------------------------------------------------
+# B3: check
+# ---------------------------------------------------------------------------
+
+class JKA_OT_CheckRun(bpy.types.Operator):
+    """Run animkit's check (GLA/GLM + cfgs + skin) over the character or
+    skeleton dir; the findings land in the Results collection (the
+    bpy-free core is checkop.py — no format logic in this face)"""
+    bl_idname = "jka_anim.check_run"
+    bl_label = "Run check"
+    bl_description = ("Run animkit's check over models/players/<character> "
+                      "(GLA/GLM + cfgs + skin) and list the findings in "
+                      "the Results collection")
+
+    def execute(self, context):
+        p = _p(context)
+        try:
+            _need_cfg(p)
+            ak = _ak(p)
+            d = checkop.resolve_char_dir(p.cfg_basepath, p.cfg_character)
+            res = checkop.check_dir(ak, d)
+            _sync_results(p, res.lines())
+            self.report({'INFO'} if res.ok else {'WARNING'}, res.summary())
+            return {'FINISHED'}
+        except JkaError as e:
+            self.report({'ERROR'}, str(e))
+            return {'CANCELLED'}
+
+
 CLASSES = (
     JKA_OT_SegmentsLoad,
     JKA_OT_SegmentJump,
@@ -518,6 +548,7 @@ CLASSES = (
     JKA_OT_EventsSave,
     JKA_OT_SaberValidate,
     JKA_OT_SaberPresetApply,
+    JKA_OT_CheckRun,
 )
 
 
