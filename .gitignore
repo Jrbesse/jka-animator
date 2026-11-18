@@ -1,18 +1,22 @@
-# Godot 4 auto-generated files
-.godot/
-*.uid
+# Godot 4 auto-generated files (shelved skeleton — godot-shelved/)
+godot-shelved/.godot/
+godot-shelved/*.uid
 
-# Mono/C# build artifacts
-.mono/
-bin/
-obj/
-*.user
+# Mono/C# build artifacts (shelved)
+godot-shelved/.mono/
+godot-shelved/bin/
+godot-shelved/obj/
+godot-shelved/*.user
 
 # Visual Studio / Rider
 .vs/
 .idea/
 *.suo
 *.sln.user
+
+# Blender (local caches; the addon ships clean)
+__pycache__/
+*.pyc
 
 # OS junk
 .DS_Store
