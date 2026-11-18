@@ -11,7 +11,7 @@ from . import refimport, rigprep, exportop
 from .common import JkaError
 
 
-class JkaAnim_OT_LoadReference(bpy.types.Operator):
+class JKA_OT_LoadReference(bpy.types.Operator):
     """Import a reference .gla as the 'reference_humanoid' overlay
     (safe around the skeleton_root name trap); scrub it and pose the
     rig to match"""
@@ -33,7 +33,7 @@ class JkaAnim_OT_LoadReference(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class JkaAnim_OT_PrepRig(bpy.types.Operator):
+class JKA_OT_PrepRig(bpy.types.Operator):
     """Strip IK constraints + stored pose offsets from the rig's
     skeleton_root mirror (in memory only; the .blend is never saved)"""
     bl_idname = "jka_anim.prep_rig"
@@ -51,7 +51,7 @@ class JkaAnim_OT_PrepRig(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class JkaAnim_OT_ExportGla(bpy.types.Operator):
+class JKA_OT_ExportGla(bpy.types.Operator):
     """Export skeleton_root to .gla via the installed jediacademy addon
     (restores the legacy g2 scale; validate afterwards with animkit)"""
     bl_idname = "jka_anim.export_gla"
@@ -82,9 +82,9 @@ class JkaAnim_OT_ExportGla(bpy.types.Operator):
 
 
 CLASSES = (
-    JkaAnim_OT_LoadReference,
-    JkaAnim_OT_PrepRig,
-    JkaAnim_OT_ExportGla,
+    JKA_OT_LoadReference,
+    JKA_OT_PrepRig,
+    JKA_OT_ExportGla,
 )
 
 

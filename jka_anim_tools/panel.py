@@ -69,7 +69,7 @@ class JkaAnim_PropGroup(bpy.types.PropertyGroup):
                     "directory that CONTAINS the 'jediacademy' package folder")
 
 
-class JkaAnim_PT_Main(bpy.types.Panel):
+class JKA_PT_Main(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_category = 'JKA'
@@ -114,7 +114,7 @@ class JkaAnim_PT_Main(bpy.types.Panel):
 
 CLASSES = (
     JkaAnim_PropGroup,
-    JkaAnim_PT_Main,
+    JKA_PT_Main,
 )
 
 
