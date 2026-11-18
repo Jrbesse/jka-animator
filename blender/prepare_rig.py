@@ -49,16 +49,32 @@ import sys
 import bpy
 
 MIRROR = "skeleton_root"
+RIG_NAME = "rig_armature"
+REF_NAME = "reference_humanoid"
 
 
 def strip_rig():
     """Remove IK constraints + stored pose offsets from the mirror armature.
     In-memory only; never saves the .blend."""
     arm = bpy.data.objects.get(MIRROR)
-    if arm is None or arm.type != "ARMATURE":
-        raise SystemExit(
-            f"prepare_rig: no armature object named '{MIRROR}' found — "
-            "is the IK rig file open in this scene?")
+    if arm is None:
+        # matched-session layout (load_reference.py): the mirror was renamed
+        # away to keep the importer from reusing it — put it back
+        cand = bpy.data.objects.get(RIG_NAME)
+        if cand is None or cand.type != "ARMATURE":
+            raise SystemExit(
+                f"prepare_rig: no armature object named '{MIRROR}' found — "
+                "is the IK rig file open in this scene?")
+        ref = bpy.data.objects.get(REF_NAME)
+        if ref is not None and ref.data.name == MIRROR:
+            ref.data.name = REF_NAME + "_data"
+        cand.data.name = MIRROR
+        cand.name = MIRROR
+        print(f"prepare_rig: renamed '{RIG_NAME}' back to '{MIRROR}' "
+              "(matched-session layout from load_reference.py)")
+        arm = cand
+    if arm.type != "ARMATURE":
+        raise SystemExit(f"prepare_rig: '{MIRROR}' is not an armature")
     removed = 0
     for pb in arm.pose.bones:
         for c in list(pb.constraints):

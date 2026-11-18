@@ -56,6 +56,59 @@ blender --background rig.blend --python blender/prepare_rig.py -- \
     --frame-start 0 --frame-end 239
 ```
 
+## Animation matching (S2, signed off 2026-11-17)
+
+The adopted path: load the reference .gla **into the rig's scene** as a
+second armature, scrub it, and pose the rig to match. Verified end-to-end
+(2026-11-17, Blender 5.3.0): three armatures coexist (IK_Rig 64 bones,
+rig_armature 53, reference_humanoid 53), the reference animates
+independently, the rig stays untouched, and the export afterwards is
+byte-identical to a non-matched export.
+
+**The name trap (why `load_reference.py` exists):** the addon's importer
+reuses ANY existing object OR armature data-block named `skeleton_root` —
+naively importing into the rig scene would keyframe the reference onto the
+rig's mirror armature. Worse, in the JustJordyn rig the IK_Rig armature's
+*data-block* is also named `skeleton_root`. `load_reference.py` renames
+both out of the way, imports (fresh armature), and renames the result to
+`reference_humanoid`.
+
+Interactive (the normal flow — matching is visual work):
+
+1. Open the rig in Blender (addon installed).
+2. Text Editor: run `load_reference.py` with the reference path
+   (or just run it and edit the `_arg` defaults; see `--gla/--basepath`).
+3. Scrub the timeline — `reference_humanoid` plays, `rig_armature` is
+   yours. Pose the rig to match (select pose bones on `rig_armature`,
+   insert keyframes into a new action for the take).
+4. Run `prepare_rig.py` — it renames `rig_armature` back to
+   `skeleton_root` automatically, strips, restores scale, exports.
+5. animkit gate (below), then in-engine play check.
+
+Headless notes:
+
+- `blender --background rig.blend --python load_reference.py -- ...`
+  and `--python prepare_rig.py -- ...` work as separate invocations, but
+  **two `--python` blocks do NOT chain on one command line** (Blender CLI:
+  everything after the first `--` is consumed as the first script's args).
+  For one-process runs, drive both from a single script (each reads args
+  after `--`).
+- `--mode cfg` (NLA strip per animation.cfg segment) is the comfortable
+  mode for scrubbing named sequences; it is slow on big skeletons
+  (26K-frame `_humanoid` needs several minutes on a container CPU).
+  `--mode range` is fast and fine for single-segment probes.
+
+## Fingers (R3)
+
+Key them directly — no controls needed in the addon: each hand has the six
+engine finger bones (`l_d1_j1 … r_d4_j3`, four fingers × three joints, no
+thumbs — the engine has none). The engine parents fingers under `radius`,
+so they rotate in the hand's frame; key the joint pose bones directly
+(relative to the hand as posed) and the exporter writes all 53 bones —
+per-bone fidelity including finger joints is covered by the round-trip
+validation. In a matched session, key them on `rig_armature` while
+`reference_humanoid` shows the target hand pose.
+
 ## Caveats (reproducible — details in the v15 handoff)
 
 - **C1 — never export the rig .blend as-is.** Run `prepare_rig.py` first
