@@ -1,0 +1,448 @@
+BLENDER_VERSION 5.3.0
+FILE /home/hermes/work/jka-animator/fixtures/ik-rig/doc_9f2fca7e0a77_Jedi_Academy_IK_Animation_Rig_v1.1.blend
+SCENE Scene fps 24 frames 0 0 current 0
+
+=== COLLECTIONS ===
+COLL BLASTERS
+  OBJ BlasterPistol type=EMPTY parent=scene_root colls=['BLASTERS']
+  OBJ w_blaster_pistol_inworld_0 type=MESH parent=BlasterPistol colls=['BLASTERS']
+  OBJ *parent_0.001 type=MESH parent=w_blaster_pistol_inworld_0 colls=['BLASTERS']
+  OBJ BlasterRifle type=EMPTY parent=scene_root colls=['BLASTERS']
+  OBJ w_blaster_0 type=MESH parent=BlasterRifle colls=['BLASTERS']
+  OBJ *parent_0 type=MESH parent=w_blaster_0 colls=['BLASTERS']
+  OBJ w_handle_0 type=MESH parent=w_blaster_0 colls=['BLASTERS']
+COLL EXPORT - Do Not Delete
+  OBJ scene_root type=EMPTY parent=- colls=['EXPORT - Do Not Delete']
+  OBJ skeleton_root type=ARMATURE parent=scene_root colls=['EXPORT - Do Not Delete']
+COLL MODELS - Use These for Reference
+  OBJ Kyle type=EMPTY parent=scene_root colls=['MODELS - Use These for Reference']
+  OBJ head_0 type=MESH parent=torso_0 colls=['MODELS - Use These for Reference']
+  OBJ head_cap_torso_off_0 type=MESH parent=head_0 colls=['MODELS - Use These for Reference']
+  OBJ head_eyes_mouth_0 type=MESH parent=head_0 colls=['MODELS - Use These for Reference']
+  OBJ head_face_0 type=MESH parent=head_0 colls=['MODELS - Use These for Reference']
+  OBJ hips_0 type=MESH parent=stupidtriangle_off_0 colls=['MODELS - Use These for Reference']
+  OBJ hips_belt_0 type=MESH parent=hips_0 colls=['MODELS - Use These for Reference']
+  OBJ hips_cap_l_leg_off_0 type=MESH parent=hips_0 colls=['MODELS - Use These for Reference']
+  OBJ hips_cap_r_leg_off_0 type=MESH parent=hips_0 colls=['MODELS - Use These for Reference']
+  OBJ hips_cap_torso_off_0 type=MESH parent=hips_0 colls=['MODELS - Use These for Reference']
+  OBJ hips_torso_0 type=MESH parent=hips_0 colls=['MODELS - Use These for Reference']
+  OBJ l_arm_0 type=MESH parent=torso_0 colls=['MODELS - Use These for Reference']
+  OBJ l_arm_cap_l_hand_off_0 type=MESH parent=l_arm_0 colls=['MODELS - Use These for Reference']
+  OBJ l_arm_cap_torso_off_0 type=MESH parent=l_arm_0 colls=['MODELS - Use These for Reference']
+  OBJ l_hand_0 type=MESH parent=l_arm_0 colls=['MODELS - Use These for Reference']
+  OBJ l_hand_cap_l_arm_off_0 type=MESH parent=l_hand_0 colls=['MODELS - Use These for Reference']
+  OBJ l_hand_wrist_0 type=MESH parent=l_hand_0 colls=['MODELS - Use These for Reference']
+  OBJ l_leg_0 type=MESH parent=hips_0 colls=['MODELS - Use These for Reference']
+  OBJ l_leg_cap_hips_off_0 type=MESH parent=l_leg_0 colls=['MODELS - Use These for Reference']
+  OBJ r_arm_0 type=MESH parent=torso_0 colls=['MODELS - Use These for Reference']
+  OBJ r_arm_cap_r_hand_off_0 type=MESH parent=r_arm_0 colls=['MODELS - Use These for Reference']
+  OBJ r_arm_cap_torso_off_0 type=MESH parent=r_arm_0 colls=['MODELS - Use These for Reference']
+  OBJ r_hand_0 type=MESH parent=r_arm_0 colls=['MODELS - Use These for Reference']
+  OBJ r_hand_cap_r_arm_off_0 type=MESH parent=r_hand_0 colls=['MODELS - Use These for Reference']
+  OBJ r_hand_wrist_0 type=MESH parent=r_hand_0 colls=['MODELS - Use These for Reference']
+  OBJ r_leg_0 type=MESH parent=hips_0 colls=['MODELS - Use These for Reference']
+  OBJ r_leg_cap_hips_off_0 type=MESH parent=r_leg_0 colls=['MODELS - Use These for Reference']
+  OBJ stupidtriangle_off_0 type=MESH parent=Kyle colls=['MODELS - Use These for Reference']
+  OBJ torso_0 type=MESH parent=hips_0 colls=['MODELS - Use These for Reference']
+  OBJ torso_cap_head_off_0 type=MESH parent=torso_0 colls=['MODELS - Use These for Reference']
+  OBJ torso_cap_hips_off_0 type=MESH parent=torso_0 colls=['MODELS - Use These for Reference']
+  OBJ torso_cap_l_arm_off_0 type=MESH parent=torso_0 colls=['MODELS - Use These for Reference']
+  OBJ torso_cap_r_arm_off_0 type=MESH parent=torso_0 colls=['MODELS - Use These for Reference']
+  OBJ torso_collar_0 type=MESH parent=torso_0 colls=['MODELS - Use These for Reference']
+  OBJ torso_l_shoulder_0 type=MESH parent=torso_0 colls=['MODELS - Use These for Reference']
+  OBJ torso_r_shoulder_0 type=MESH parent=torso_0 colls=['MODELS - Use These for Reference']
+  OBJ torso_shoulder_pad_0 type=MESH parent=torso_0 colls=['MODELS - Use These for Reference']
+  OBJ Floor type=MESH parent=- colls=['MODELS - Use These for Reference']
+  COLL SABERS
+    OBJ StaffBlade1 type=MESH parent=1_0.002 colls=['SABERS']
+    OBJ StaffBlade2 type=MESH parent=1_0.002 colls=['SABERS']
+    OBJ SaberDual type=EMPTY parent=scene_root colls=['SABERS']
+    OBJ 1_0.002 type=MESH parent=SaberDual colls=['SABERS']
+    OBJ SaberL type=EMPTY parent=scene_root colls=['SABERS']
+    OBJ 1_0.001 type=MESH parent=SaberL colls=['SABERS']
+    OBJ BladeL type=MESH parent=1_0.001 colls=['SABERS']
+    OBJ SaberR type=EMPTY parent=scene_root colls=['SABERS']
+    OBJ 1_0 type=MESH parent=SaberR colls=['SABERS']
+    OBJ BladeR type=MESH parent=1_0 colls=['SABERS']
+  COLL BLASTERS
+    OBJ BlasterPistol type=EMPTY parent=scene_root colls=['BLASTERS']
+    OBJ w_blaster_pistol_inworld_0 type=MESH parent=BlasterPistol colls=['BLASTERS']
+    OBJ *parent_0.001 type=MESH parent=w_blaster_pistol_inworld_0 colls=['BLASTERS']
+    OBJ BlasterRifle type=EMPTY parent=scene_root colls=['BLASTERS']
+    OBJ w_blaster_0 type=MESH parent=BlasterRifle colls=['BLASTERS']
+    OBJ *parent_0 type=MESH parent=w_blaster_0 colls=['BLASTERS']
+    OBJ w_handle_0 type=MESH parent=w_blaster_0 colls=['BLASTERS']
+COLL RIG - Use This to Animate
+  OBJ IK_Rig type=ARMATURE parent=scene_root colls=['RIG - Use This to Animate']
+COLL SABERS
+  OBJ StaffBlade1 type=MESH parent=1_0.002 colls=['SABERS']
+  OBJ StaffBlade2 type=MESH parent=1_0.002 colls=['SABERS']
+  OBJ SaberDual type=EMPTY parent=scene_root colls=['SABERS']
+  OBJ 1_0.002 type=MESH parent=SaberDual colls=['SABERS']
+  OBJ SaberL type=EMPTY parent=scene_root colls=['SABERS']
+  OBJ 1_0.001 type=MESH parent=SaberL colls=['SABERS']
+  OBJ BladeL type=MESH parent=1_0.001 colls=['SABERS']
+  OBJ SaberR type=EMPTY parent=scene_root colls=['SABERS']
+  OBJ 1_0 type=MESH parent=SaberR colls=['SABERS']
+  OBJ BladeR type=MESH parent=1_0 colls=['SABERS']
+
+=== ARMATURES ===
+
+ARMATURE 'IK_Rig' (obj colls=['RIG - Use This to Animate']) bones=64 bone_collections=6
+  armature props: {'MustardUI_RigSettings': <bpy id prop: owner="ARskeleton_root", name="MustardUI_RigSettings", address=0x779a92f1c8a0>, 'MustardUI_LatticeSettings': <bpy id prop: owner="ARskeleton_root", name="MustardUI_LatticeSettings", address=0x779a92f1c5a0>, 'MustardUI_PhysicsSettings': <bpy id prop: owner="ARskeleton_root", name="MustardUI_PhysicsSettings", address=0x779a92f1c4e0>, 'MustardUI_ArmatureSettings': <bpy id prop: owner="ARskeleton_root", name="MustardUI_ArmatureSettings", address=0x779a92f1c420>, 'vs': <bpy id prop: owner="ARskeleton_root", name="vs", address=0x779a92f1c360>}
+  BONE_COLL 'Layer 1' (64): model_root, lknee_targeet, rknee_target, rheel_IK, rtalus, lheel_IK, ltalus, Upper_Body_Pivot, lhand_IK, lhand, l_d4_j1, l_d4_j2, l_d2_j1, l_d2_j2, l_d1_j1, l_d1_j2, lhang_tag_bone, rhand_IK, rhand, r_d1_j1, r_d1_j2, r_d2_j1, r_d2_j2, r_d4_j1, r_d4_j2, rhang_tag_bone, relbow_target, lelbow_target, pelvis, lfemurYZ, lfemurX, ltibia, ltail, rfemurYZ, rfemurX, rtibia, rtail, spine, lower_lumbar, upper_lumbar, upper_spine, thoracic, cervical, cranium, face, ceyebrow, jaw, lblip2, rblip2, leye, ltlip2, rtlip2, reye, head_target, rclavical, rhumerus, rhumerusX, rradius, rradiusX, lclavical, lhumerus, lhumerusX, lradius, lradiusX
+  BONE_COLL 'World' (2): model_root, Upper_Body_Pivot
+  BONE_COLL 'PoleVectors' (5): lknee_targeet, rknee_target, relbow_target, lelbow_target, head_target
+  BONE_COLL 'Spine' (2): spine, upper_spine
+  BONE_COLL 'IKs' (4): rheel_IK, lheel_IK, lhand_IK, rhand_IK
+  BONE_COLL 'Pelvis' (1): pelvis
+  --- bones ---
+  BONE model_root head=[0.00,0.00,-24.06] tail=[2.56,0.00,-24.06] len=2.560 
+  BONE lknee_targeet head=[-24.70,4.85,21.04] tail=[-24.70,4.85,29.61] len=8.576 parent=model_root
+  BONE rknee_target head=[-24.70,-9.97,21.03] tail=[-24.70,-9.97,29.61] len=8.576 parent=model_root
+  BONE rheel_IK head=[-7.52,-13.71,-1.83] tail=[-7.52,-13.71,-11.51] len=9.685 parent=model_root
+  BONE rtalus head=[-0.00,-9.69,-0.00] tail=[-2.19,-14.17,-0.17] len=4.995 parent=rheel_IK
+  BONE lheel_IK head=[-7.52,8.59,-1.83] tail=[-7.52,8.59,-11.51] len=9.685 parent=model_root
+  BONE ltalus head=[0.00,-9.69,-0.00] tail=[-2.19,-14.17,0.17] len=4.995 parent=lheel_IK
+  BONE Upper_Body_Pivot head=[-35.48,-2.56,-0.39] tail=[-35.48,-1.49,-0.39] len=1.070 parent=model_root
+  BONE lhand_IK head=[-4.49,17.93,0.07] tail=[-4.49,17.93,-6.67] len=6.744 parent=Upper_Body_Pivot
+  BONE lhand head=[-0.00,-6.74,-0.00] tail=[2.52,-7.16,-0.20] len=2.560 parent=lhand_IK
+  BONE l_d4_j1 head=[-0.63,0.81,-0.02] tail=[-0.68,2.24,-2.14] len=2.560 parent=lhand
+  BONE l_d4_j2 head=[0.00,-1.29,0.00] tail=[1.46,0.81,0.07] len=2.560 parent=l_d4_j1
+  BONE l_d2_j1 head=[0.71,0.83,0.12] tail=[0.90,2.65,-1.67] len=2.560 parent=lhand
+  BONE l_d2_j2 head=[-0.00,-1.25,0.00] tail=[0.50,1.26,0.03] len=2.560 parent=l_d2_j1
+  BONE l_d1_j1 head=[0.85,-1.80,-0.29] tail=[1.81,0.09,-1.74] len=2.560 parent=lhand
+  BONE l_d1_j2 head=[-0.00,-1.02,-0.00] tail=[1.08,1.30,-0.05] len=2.560 parent=l_d1_j1
+  BONE lhang_tag_bone head=[-0.05,0.50,-0.89] tail=[-0.54,1.02,1.57] len=2.560 parent=lhand
+  BONE rhand_IK head=[-4.49,-20.07,0.07] tail=[-4.49,-20.07,-6.67] len=6.744 parent=Upper_Body_Pivot
+  BONE rhand head=[-0.00,-6.74,0.00] tail=[2.52,-7.16,0.20] len=2.560 parent=rhand_IK
+  BONE r_d1_j1 head=[0.85,-1.80,0.29] tail=[1.81,0.09,1.74] len=2.560 parent=rhand
+  BONE r_d1_j2 head=[-0.00,-1.02,0.00] tail=[1.08,1.30,0.05] len=2.560 parent=r_d1_j1
+  BONE r_d2_j1 head=[0.71,0.83,-0.12] tail=[0.90,2.65,1.67] len=2.560 parent=rhand
+  BONE r_d2_j2 head=[-0.00,-1.25,0.00] tail=[0.50,1.26,-0.03] len=2.560 parent=r_d2_j1
+  BONE r_d4_j1 head=[-0.63,0.81,0.02] tail=[-0.68,2.24,2.14] len=2.560 parent=rhand
+  BONE r_d4_j2 head=[-0.00,-1.29,0.00] tail=[1.46,0.81,-0.07] len=2.560 parent=r_d4_j1
+  BONE rhang_tag_bone head=[-0.05,0.50,0.89] tail=[0.44,-0.03,3.35] len=2.560 parent=rhand
+  BONE relbow_target head=[-10.99,-14.26,-12.35] tail=[-10.99,-14.26,-19.10] len=6.744 parent=Upper_Body_Pivot
+  BONE lelbow_target head=[-10.99,12.12,-12.35] tail=[-10.99,12.12,-19.10] len=6.744 parent=Upper_Body_Pivot
+  BONE pelvis head=[-0.16,-1.07,-0.00] tail=[-2.72,-1.07,-0.00] len=2.560 parent=Upper_Body_Pivot
+  BONE lfemurYZ head=[0.59,-2.56,-3.61] tail=[0.41,-5.03,-4.27] len=2.560 parent=pelvis
+  BONE lfemurX head=[0.00,4.80,0.00] tail=[0.00,7.36,0.00] len=2.560 parent=lfemurYZ
+  BONE ltibia head=[-0.84,12.10,-0.00] tail=[0.01,26.62,0.00] len=14.547 parent=lfemurYZ
+  BONE ltail head=[5.57,-5.22,0.32] tail=[5.80,-2.67,0.32] len=2.560 parent=lfemurYZ
+  BONE rfemurYZ head=[0.59,-2.56,3.61] tail=[0.41,-5.03,4.27] len=2.560 parent=pelvis
+  BONE rfemurX head=[-0.00,4.80,0.00] tail=[-0.00,7.36,0.00] len=2.560 parent=rfemurYZ
+  BONE rtibia head=[-0.84,12.10,0.00] tail=[0.00,26.62,0.00] len=14.547 parent=rfemurYZ
+  BONE rtail head=[5.57,-5.22,-0.32] tail=[5.81,-2.67,-0.32] len=2.560 parent=rfemurYZ
+  BONE spine head=[0.00,3.20,-0.00] tail=[-0.89,3.20,0.00] len=0.893 parent=pelvis
+  BONE lower_lumbar head=[-0.00,-0.89,-0.00] tail=[5.12,-0.89,-0.00] len=5.120 parent=spine
+  BONE upper_lumbar head=[-0.00,0.00,0.00] tail=[-0.00,5.12,-0.00] len=5.120 parent=lower_lumbar connect
+  BONE upper_spine head=[10.24,-0.89,-0.00] tail=[10.24,-0.14,-0.00] len=0.748 parent=spine
+  BONE thoracic head=[0.00,-0.75,-0.00] tail=[2.56,-0.75,-0.00] len=2.560 parent=upper_spine
+  BONE cervical head=[0.00,2.56,-0.00] tail=[0.00,5.45,-0.00] len=2.893 parent=thoracic
+  BONE cranium head=[-0.00,0.00,0.00] tail=[2.47,0.00,-0.00] len=2.475 parent=cervical connect
+  BONE face head=[0.00,-2.47,0.00] tail=[2.56,-2.47,-0.00] len=2.562 parent=cranium
+  BONE ceyebrow head=[3.93,0.99,0.02] tail=[6.62,1.71,0.03] len=2.785 parent=face
+  BONE jaw head=[0.92,-1.38,-0.02] tail=[3.29,-2.83,-0.05] len=2.785 parent=face
+  BONE lblip2 head=[-1.11,0.46,-0.53] tail=[-0.47,-1.04,-2.79] len=2.785 parent=jaw
+  BONE rblip2 head=[-1.11,0.46,0.53] tail=[-0.47,-1.04,2.79] len=2.785 parent=jaw
+  BONE leye head=[3.24,0.44,-1.09] tail=[6.02,0.44,-1.09] len=2.785 parent=face
+  BONE ltlip2 head=[4.26,-1.98,-0.56] tail=[2.65,-2.23,-2.82] len=2.785 parent=face
+  BONE rtlip2 head=[4.26,-2.00,0.50] tail=[2.65,-2.32,2.75] len=2.785 parent=face
+  BONE reye head=[3.24,0.40,1.19] tail=[6.02,0.40,1.19] len=2.785 parent=face
+  BONE head_target head=[13.82,0.00,-0.00] tail=[17.53,-0.09,-0.07] len=3.715 parent=cervical
+  BONE rclavical head=[0.00,0.36,-0.00] tail=[-0.32,0.36,2.54] len=2.560 parent=thoracic
+  BONE rhumerus head=[0.00,3.41,-0.00] tail=[0.26,5.10,1.91] len=2.560 parent=rclavical
+  BONE rhumerusX head=[-0.00,2.88,0.00] tail=[0.00,5.44,0.00] len=2.560 parent=rhumerus
+  BONE rradius head=[-0.55,8.31,0.01] tail=[0.48,17.05,0.00] len=8.800 parent=rhumerus
+  BONE rradiusX head=[0.27,-4.36,-0.01] tail=[0.11,-1.81,-0.00] len=2.560 parent=rradius
+  BONE lclavical head=[0.00,0.36,-0.00] tail=[-0.32,0.36,-2.54] len=2.560 parent=thoracic
+  BONE lhumerus head=[0.00,3.41,0.00] tail=[0.26,5.10,-1.91] len=2.560 parent=lclavical
+  BONE lhumerusX head=[0.00,2.88,-0.00] tail=[0.00,5.44,-0.00] len=2.560 parent=lhumerus
+  BONE lradius head=[-0.55,8.31,-0.01] tail=[0.48,17.05,-0.00] len=8.800 parent=lhumerus
+  BONE lradiusX head=[0.27,-4.36,0.01] tail=[0.11,-1.81,0.00] len=2.560 parent=lradius
+  --- pose bones (constraints) ---
+  PB <bpy_struct, Bone("model_root") at 0x779a92fb1d20> | props={'mmd_bone': <bpy id prop: owner="OBIK_Rig", name="mmd_bone", address=0x779a92fa1620>}
+  PB <bpy_struct, Bone("lknee_targeet") at 0x779a92fb1aa0> | props={'mmd_bone': <bpy id prop: owner="OBIK_Rig", name="mmd_bone", address=0x779a92fa14a0>}
+  PB <bpy_struct, Bone("rknee_target") at 0x779a92fb1820> | props={'mmd_bone': <bpy id prop: owner="OBIK_Rig", name="mmd_bone", address=0x779a92fa1320>}
+  PB <bpy_struct, Bone("rheel_IK") at 0x779a92fb15a0> | props={'mmd_bone': <bpy id prop: owner="OBIK_Rig", name="mmd_bone", address=0x779a92fa11a0>}
+  PB <bpy_struct, Bone("rtalus") at 0x779a92fb1320> | Copy Location:COPY_LOCATION(influence=1.0 target=IK_Rig/rtibia) | props={'mmd_bone': <bpy id prop: owner="OBIK_Rig", name="mmd_bone", address=0x779a92fa1020>}
+  PB <bpy_struct, Bone("lheel_IK") at 0x779a92fb10a0> | props={'mmd_bone': <bpy id prop: owner="OBIK_Rig", name="mmd_bone", address=0x779a92fa0ea0>}
+  PB <bpy_struct, Bone("ltalus") at 0x779a92fb0e20> | Copy Location:COPY_LOCATION(influence=1.0 target=IK_Rig/ltibia) | props={'mmd_bone': <bpy id prop: owner="OBIK_Rig", name="mmd_bone", address=0x779a92fa0d20>}
+  PB <bpy_struct, Bone("Upper_Body_Pivot") at 0x779a92fb0ba0>
+  PB <bpy_struct, Bone("lhand_IK") at 0x779a92fb0920> | props={'mmd_bone': <bpy id prop: owner="OBIK_Rig", name="mmd_bone", address=0x779a92fa0ba0>}
+  PB <bpy_struct, Bone("lhand") at 0x779a92fb06a0> | Copy Location:COPY_LOCATION(influence=1.0 target=IK_Rig/lradius) | props={'mmd_bone': <bpy id prop: owner="OBIK_Rig", name="mmd_bone", address=0x779a92fa0a20>}
+  PB <bpy_struct, Bone("l_d4_j1") at 0x779a92fb0420> | props={'mmd_bone': <bpy id prop: owner="OBIK_Rig", name="mmd_bone", address=0x779a92fa08a0>}
+  PB <bpy_struct, Bone("l_d4_j2") at 0x779a92fb01a0> | props={'mmd_bone': <bpy id prop: owner="OBIK_Rig", name="mmd_bone", address=0x779a92fa0720>}
+  PB <bpy_struct, Bone("l_d2_j1") at 0x779a92e27da0> | props={'mmd_bone': <bpy id prop: owner="OBIK_Rig", name="mmd_bone", address=0x779a92fa05a0>}
+  PB <bpy_struct, Bone("l_d2_j2") at 0x779a92e27b20> | props={'mmd_bone': <bpy id prop: owner="OBIK_Rig", name="mmd_bone", address=0x779a92fa0420>}
+  PB <bpy_struct, Bone("l_d1_j1") at 0x779a92e278a0> | props={'mmd_bone': <bpy id prop: owner="OBIK_Rig", name="mmd_bone", address=0x779a92fa02a0>}
+  PB <bpy_struct, Bone("l_d1_j2") at 0x779a92e27620> | props={'mmd_bone': <bpy id prop: owner="OBIK_Rig", name="mmd_bone", address=0x779a92fa0120>}
+  PB <bpy_struct, Bone("lhang_tag_bone") at 0x779a92e273a0> | props={'mmd_bone': <bpy id prop: owner="OBIK_Rig", name="mmd_bone", address=0x779a92f8bea0>}
+  PB <bpy_struct, Bone("rhand_IK") at 0x779a92e27120> | props={'mmd_bone': <bpy id prop: owner="OBIK_Rig", name="mmd_bone", address=0x779a92f8bd20>}
+  PB <bpy_struct, Bone("rhand") at 0x779a92e26ea0> | Copy Location:COPY_LOCATION(influence=1.0 target=IK_Rig/rradius) | props={'mmd_bone': <bpy id prop: owner="OBIK_Rig", name="mmd_bone", address=0x779a92f8bba0>}
+  PB <bpy_struct, Bone("r_d1_j1") at 0x779a92e26c20> | props={'mmd_bone': <bpy id prop: owner="OBIK_Rig", name="mmd_bone", address=0x779a92f8ba20>}
+  PB <bpy_struct, Bone("r_d1_j2") at 0x779a92e269a0> | props={'mmd_bone': <bpy id prop: owner="OBIK_Rig", name="mmd_bone", address=0x779a92f8b8a0>}
+  PB <bpy_struct, Bone("r_d2_j1") at 0x779a92e26720> | props={'mmd_bone': <bpy id prop: owner="OBIK_Rig", name="mmd_bone", address=0x779a92f8b720>}
+  PB <bpy_struct, Bone("r_d2_j2") at 0x779a92e264a0> | props={'mmd_bone': <bpy id prop: owner="OBIK_Rig", name="mmd_bone", address=0x779a92f8b5a0>}
+  PB <bpy_struct, Bone("r_d4_j1") at 0x779a92e26220> | props={'mmd_bone': <bpy id prop: owner="OBIK_Rig", name="mmd_bone", address=0x779a92f8b420>}
+  PB <bpy_struct, Bone("r_d4_j2") at 0x779a92e25fa0> | props={'mmd_bone': <bpy id prop: owner="OBIK_Rig", name="mmd_bone", address=0x779a92f8b2a0>}
+  PB <bpy_struct, Bone("rhang_tag_bone") at 0x779a92e25d20> | props={'mmd_bone': <bpy id prop: owner="OBIK_Rig", name="mmd_bone", address=0x779a92f8b120>}
+  PB <bpy_struct, Bone("relbow_target") at 0x779a92e25aa0> | props={'mmd_bone': <bpy id prop: owner="OBIK_Rig", name="mmd_bone", address=0x779a92f8afa0>}
+  PB <bpy_struct, Bone("lelbow_target") at 0x779a92e25820> | props={'mmd_bone': <bpy id prop: owner="OBIK_Rig", name="mmd_bone", address=0x779a92f8ae20>}
+  PB <bpy_struct, Bone("pelvis") at 0x779a92e255a0> | props={'mmd_bone': <bpy id prop: owner="OBIK_Rig", name="mmd_bone", address=0x779a92f8aca0>}
+  PB <bpy_struct, Bone("lfemurYZ") at 0x779a92e25320>
+  PB <bpy_struct, Bone("lfemurX") at 0x779a92e250a0>
+  PB <bpy_struct, Bone("ltibia") at 0x779a92e24e20> | IK:IK(chain=2 influence=1.0 target=IK_Rig/lheel_IK) | props={'mmd_bone': <bpy id prop: owner="OBIK_Rig", name="mmd_bone", address=0x779a92f8ab20>}
+  PB <bpy_struct, Bone("ltail") at 0x779a92e24ba0>
+  PB <bpy_struct, Bone("rfemurYZ") at 0x779a92e24920>
+  PB <bpy_struct, Bone("rfemurX") at 0x779a92e246a0>
+  PB <bpy_struct, Bone("rtibia") at 0x779a92e24420> | IK:IK(chain=2 influence=1.0 target=IK_Rig/rheel_IK)
+  PB <bpy_struct, Bone("rtail") at 0x779a92e241a0>
+  PB <bpy_struct, Bone("spine") at 0x779a92e2bda0> | props={'mmd_bone': <bpy id prop: owner="OBIK_Rig", name="mmd_bone", address=0x779a92f8a9a0>}
+  PB <bpy_struct, Bone("lower_lumbar") at 0x779a92e2bb20> | props={'mmd_bone': <bpy id prop: owner="OBIK_Rig", name="mmd_bone", address=0x779a92f8a820>}
+  PB <bpy_struct, Bone("upper_lumbar") at 0x779a92e2b8a0> | IK:IK(chain=1 influence=1.0 target=IK_Rig/upper_spine) | props={'mmd_bone': <bpy id prop: owner="OBIK_Rig", name="mmd_bone", address=0x779a92f8a6a0>}
+  PB <bpy_struct, Bone("upper_spine") at 0x779a92e2b620> | props={'mmd_bone': <bpy id prop: owner="OBIK_Rig", name="mmd_bone", address=0x779a92f8a520>}
+  PB <bpy_struct, Bone("thoracic") at 0x779a92e2b3a0> | Copy Location:COPY_LOCATION(influence=1.0 target=IK_Rig/upper_lumbar) | props={'mmd_bone': <bpy id prop: owner="OBIK_Rig", name="mmd_bone", address=0x779a92f8a3a0>}
+  PB <bpy_struct, Bone("cervical") at 0x779a92e2b120> | props={'mmd_bone': <bpy id prop: owner="OBIK_Rig", name="mmd_bone", address=0x779a92f8a220>}
+  PB <bpy_struct, Bone("cranium") at 0x779a92e2aea0> | Track To:TRACK_TO(influence=1.0 target=IK_Rig/head_target) | props={'mmd_bone': <bpy id prop: owner="OBIK_Rig", name="mmd_bone", address=0x779a92f8a0a0>}
+  PB <bpy_struct, Bone("face") at 0x779a92e2ac20> | props={'mmd_bone': <bpy id prop: owner="OBIK_Rig", name="mmd_bone", address=0x779a92f89f20>}
+  PB <bpy_struct, Bone("ceyebrow") at 0x779a92e2a9a0>
+  PB <bpy_struct, Bone("jaw") at 0x779a92e2a720> | props={'mmd_bone': <bpy id prop: owner="OBIK_Rig", name="mmd_bone", address=0x779a92f89da0>}
+  PB <bpy_struct, Bone("lblip2") at 0x779a92e2a4a0>
+  PB <bpy_struct, Bone("rblip2") at 0x779a92e2a220>
+  PB <bpy_struct, Bone("leye") at 0x779a92e29fa0>
+  PB <bpy_struct, Bone("ltlip2") at 0x779a92e29d20>
+  PB <bpy_struct, Bone("rtlip2") at 0x779a92e29aa0>
+  PB <bpy_struct, Bone("reye") at 0x779a92e29820>
+  PB <bpy_struct, Bone("head_target") at 0x779a92e295a0> | props={'mmd_bone': <bpy id prop: owner="OBIK_Rig", name="mmd_bone", address=0x779a92f89c20>}
+  PB <bpy_struct, Bone("rclavical") at 0x779a92e29320> | props={'mmd_bone': <bpy id prop: owner="OBIK_Rig", name="mmd_bone", address=0x779a92f89aa0>}
+  PB <bpy_struct, Bone("rhumerus") at 0x779a92e290a0> | props={'mmd_bone': <bpy id prop: owner="OBIK_Rig", name="mmd_bone", address=0x779a92f89920>}
+  PB <bpy_struct, Bone("rhumerusX") at 0x779a92e28e20>
+  PB <bpy_struct, Bone("rradius") at 0x779a92e28ba0> | IK:IK(chain=2 influence=1.0 target=IK_Rig/rhand_IK) | props={'mmd_bone': <bpy id prop: owner="OBIK_Rig", name="mmd_bone", address=0x779a92f897a0>}
+  PB <bpy_struct, Bone("rradiusX") at 0x779a92e28920>
+  PB <bpy_struct, Bone("lclavical") at 0x779a92e286a0> | props={'mmd_bone': <bpy id prop: owner="OBIK_Rig", name="mmd_bone", address=0x779a92f89620>}
+  PB <bpy_struct, Bone("lhumerus") at 0x779a92e28420> | props={'mmd_bone': <bpy id prop: owner="OBIK_Rig", name="mmd_bone", address=0x779a92f894a0>}
+  PB <bpy_struct, Bone("lhumerusX") at 0x779a92e281a0>
+  PB <bpy_struct, Bone("lradius") at 0x779a92e1fda0> | IK:IK(chain=2 influence=1.0 target=IK_Rig/lhand_IK) | props={'mmd_bone': <bpy id prop: owner="OBIK_Rig", name="mmd_bone", address=0x779a92f89320>}
+  PB <bpy_struct, Bone("lradiusX") at 0x779a92e1fb20> | props={'mmd_bone': <bpy id prop: owner="OBIK_Rig", name="mmd_bone", address=0x779a92f891a0>}
+
+ARMATURE 'skeleton_root' (obj colls=['EXPORT - Do Not Delete']) bones=53 bone_collections=1
+  armature props: {}
+  BONE_COLL 'Layer 1' (53): model_root, pelvis, Motion, lfemurYZ, lfemurX, ltibia, ltalus, ltail, rfemurYZ, rfemurX, rtibia, rtalus, rtail, lower_lumbar, upper_lumbar, thoracic, cervical, cranium, face, ceyebrow, jaw, lblip2, leye, rblip2, ltlip2, rtlip2, reye, rclavical, rhumerus, rhumerusX, rradius, rradiusX, rhand, r_d1_j1, r_d1_j2, r_d2_j1, r_d2_j2, r_d4_j1, r_d4_j2, rhang_tag_bone, lclavical, lhumerus, lhumerusX, lradius, lradiusX, lhand, l_d4_j1, l_d4_j2, l_d2_j1, l_d2_j2, l_d1_j1, l_d1_j2, lhang_tag_bone
+  --- bones ---
+  BONE model_root head=[0.00,0.00,0.00] tail=[2.56,0.00,0.00] len=2.560 
+  BONE pelvis head=[-35.59,-2.56,-0.39] tail=[-38.15,-2.56,-0.39] len=2.560 parent=model_root
+  BONE Motion head=[0.00,-1.73,-0.00] tail=[-0.00,-1.73,-2.56] len=2.560 parent=pelvis
+  BONE lfemurYZ head=[0.59,-2.56,-3.61] tail=[0.41,-5.03,-4.27] len=2.560 parent=pelvis
+  BONE lfemurX head=[-0.00,4.80,0.00] tail=[-0.00,7.36,0.00] len=2.560 parent=lfemurYZ
+  BONE ltibia head=[-0.00,12.16,0.00] tail=[0.01,26.62,0.00] len=14.464 parent=lfemurYZ
+  BONE ltalus head=[0.00,0.00,0.00] tail=[-2.14,1.41,-0.00] len=2.560 parent=ltibia connect
+  BONE ltail head=[5.57,-5.22,0.32] tail=[5.80,-2.67,0.32] len=2.560 parent=lfemurYZ
+  BONE rfemurYZ head=[0.59,-2.56,3.61] tail=[0.41,-5.03,4.27] len=2.560 parent=pelvis
+  BONE rfemurX head=[-0.00,4.80,-0.00] tail=[-0.00,7.36,-0.00] len=2.560 parent=rfemurYZ
+  BONE rtibia head=[-0.00,12.16,-0.00] tail=[-0.00,26.62,-0.00] len=14.464 parent=rfemurYZ
+  BONE rtalus head=[0.00,0.00,0.00] tail=[-2.14,1.41,-0.00] len=2.560 parent=rtibia connect
+  BONE rtail head=[5.57,-5.22,-0.32] tail=[5.81,-2.67,-0.32] len=2.560 parent=rfemurYZ
+  BONE lower_lumbar head=[-0.00,3.20,-0.00] tail=[-0.00,8.32,-0.00] len=5.120 parent=pelvis
+  BONE upper_lumbar head=[0.00,0.00,0.00] tail=[0.00,5.12,0.00] len=5.120 parent=lower_lumbar connect
+  BONE thoracic head=[-0.00,0.00,0.00] tail=[0.00,2.56,0.00] len=2.560 parent=upper_lumbar connect
+  BONE cervical head=[-0.00,2.56,-0.00] tail=[-0.00,5.45,-0.00] len=2.893 parent=thoracic
+  BONE cranium head=[-0.00,0.00,0.00] tail=[-0.00,2.56,-0.04] len=2.560 parent=cervical connect
+  BONE face head=[-0.00,-2.56,0.00] tail=[0.00,0.00,0.00] len=2.560 parent=cranium
+  BONE ceyebrow head=[3.92,0.99,0.02] tail=[6.61,1.71,0.03] len=2.783 parent=face
+  BONE jaw head=[0.92,-1.38,-0.02] tail=[3.29,-2.83,-0.05] len=2.783 parent=face
+  BONE lblip2 head=[4.26,-2.12,-0.56] tail=[2.65,-1.84,-2.81] len=2.783 parent=face
+  BONE leye head=[3.23,0.44,-1.09] tail=[6.02,0.44,-1.09] len=2.783 parent=face
+  BONE rblip2 head=[4.26,-2.13,0.50] tail=[2.65,-1.94,2.76] len=2.783 parent=face
+  BONE ltlip2 head=[4.26,-1.98,-0.56] tail=[2.65,-2.22,-2.82] len=2.783 parent=face
+  BONE rtlip2 head=[4.26,-2.00,0.50] tail=[2.65,-2.32,2.75] len=2.783 parent=face
+  BONE reye head=[3.23,0.40,1.19] tail=[6.02,0.40,1.19] len=2.783 parent=face
+  BONE rclavical head=[-0.00,0.36,-0.00] tail=[-0.32,0.36,2.54] len=2.560 parent=thoracic
+  BONE rhumerus head=[-0.75,0.36,5.92] tail=[-0.70,-1.54,7.63] len=2.560 parent=thoracic
+  BONE rhumerusX head=[-0.00,2.88,0.00] tail=[-0.00,5.44,0.00] len=2.560 parent=rhumerus
+  BONE rradius head=[0.00,8.32,0.00] tail=[0.14,10.88,-0.00] len=2.560 parent=rhumerus
+  BONE rradiusX head=[-0.00,1.81,0.00] tail=[-0.00,4.37,0.00] len=2.560 parent=rradius
+  BONE rhand head=[-0.00,6.18,0.00] tail=[0.24,8.72,0.24] len=2.560 parent=rradius
+  BONE r_d1_j1 head=[0.91,6.83,0.36] tail=[2.03,8.47,1.98] len=2.560 parent=rradius
+  BONE r_d1_j2 head=[1.58,7.82,1.33] tail=[1.82,10.03,2.60] len=2.560 parent=rradius
+  BONE r_d2_j1 head=[1.02,9.49,0.19] tail=[1.37,11.10,2.15] len=2.560 parent=rradius
+  BONE r_d2_j2 head=[1.20,10.31,1.20] tail=[1.52,11.52,3.44] len=2.560 parent=rradius
+  BONE r_d4_j1 head=[-0.31,9.58,0.34] tail=[-0.25,10.80,2.58] len=2.560 parent=rradius
+  BONE r_d4_j2 head=[-0.28,10.18,1.45] tail=[-0.00,9.92,3.98] len=2.560 parent=rradius
+  BONE rhang_tag_bone head=[0.23,9.13,1.17] tail=[0.65,8.34,3.57] len=2.560 parent=rradius
+  BONE lclavical head=[-0.00,0.36,-0.00] tail=[-0.32,0.36,-2.54] len=2.560 parent=thoracic
+  BONE lhumerus head=[-0.75,0.36,-5.92] tail=[-0.70,-1.54,-7.63] len=2.560 parent=thoracic
+  BONE lhumerusX head=[-0.00,2.88,-0.00] tail=[-0.00,5.44,-0.00] len=2.560 parent=lhumerus
+  BONE lradius head=[0.00,8.32,0.00] tail=[0.14,10.88,0.00] len=2.560 parent=lhumerus
+  BONE lradiusX head=[-0.00,1.81,-0.00] tail=[-0.00,4.37,-0.00] len=2.560 parent=lradius
+  BONE lhand head=[-0.00,6.18,-0.00] tail=[0.24,8.72,-0.24] len=2.560 parent=lradius
+  BONE l_d4_j1 head=[-0.31,9.58,-0.34] tail=[-0.25,10.80,-2.58] len=2.560 parent=lradius
+  BONE l_d4_j2 head=[-0.28,10.18,-1.45] tail=[-0.00,9.92,-3.98] len=2.560 parent=lradius
+  BONE l_d2_j1 head=[1.02,9.49,-0.19] tail=[1.37,11.10,-2.15] len=2.560 parent=lradius
+  BONE l_d2_j2 head=[1.20,10.31,-1.20] tail=[1.52,11.52,-3.44] len=2.560 parent=lradius
+  BONE l_d1_j1 head=[0.91,6.83,-0.36] tail=[2.03,8.47,-1.98] len=2.560 parent=lradius
+  BONE l_d1_j2 head=[1.58,7.82,-1.33] tail=[1.82,10.03,-2.60] len=2.560 parent=lradius
+  BONE lhang_tag_bone head=[0.23,9.13,-1.17] tail=[-0.19,9.93,1.22] len=2.560 parent=lradius
+  --- pose bones (constraints) ---
+  PB <bpy_struct, Bone("model_root") at 0x779a92e1f620> | Copy Location:COPY_LOCATION(influence=1.0 target=IK_Rig/model_root)
+  PB <bpy_struct, Bone("pelvis") at 0x779a92e1f3a0> | Copy Rotation:COPY_ROTATION(influence=1.0 target=IK_Rig/pelvis) ; Copy Location:COPY_LOCATION(influence=1.0 target=IK_Rig/pelvis)
+  PB <bpy_struct, Bone("Motion") at 0x779a92e1f120>
+  PB <bpy_struct, Bone("lfemurYZ") at 0x779a92e1eea0> | Copy Location:COPY_LOCATION(influence=1.0 target=IK_Rig/lfemurYZ) ; Copy Rotation:COPY_ROTATION(influence=1.0 target=IK_Rig/lfemurYZ)
+  PB <bpy_struct, Bone("lfemurX") at 0x779a92e1ec20>
+  PB <bpy_struct, Bone("ltibia") at 0x779a92e1e720> | Copy Location:COPY_LOCATION(influence=1.0 target=IK_Rig/ltibia) ; Copy Rotation:COPY_ROTATION(influence=1.0 target=IK_Rig/ltibia)
+  PB <bpy_struct, Bone("ltalus") at 0x779a92e1e4a0> | Copy Location:COPY_LOCATION(influence=1.0 target=IK_Rig/ltalus) ; Copy Rotation:COPY_ROTATION(influence=1.0 target=IK_Rig/ltalus)
+  PB <bpy_struct, Bone("ltail") at 0x779a92e1e220>
+  PB <bpy_struct, Bone("rfemurYZ") at 0x779a92e1dfa0> | Copy Location:COPY_LOCATION(influence=1.0 target=IK_Rig/rfemurYZ) ; Copy Rotation:COPY_ROTATION(influence=1.0 target=IK_Rig/rfemurYZ)
+  PB <bpy_struct, Bone("rfemurX") at 0x779a92e1e9a0>
+  PB <bpy_struct, Bone("rtibia") at 0x779a92e1dd20> | Copy Location:COPY_LOCATION(influence=1.0 target=IK_Rig/rtibia) ; Copy Rotation:COPY_ROTATION(influence=1.0 target=IK_Rig/rtibia)
+  PB <bpy_struct, Bone("rtalus") at 0x779a92e1daa0> | Copy Location:COPY_LOCATION(influence=1.0 target=IK_Rig/rtalus) ; Copy Rotation:COPY_ROTATION(influence=1.0 target=IK_Rig/rtalus)
+  PB <bpy_struct, Bone("rtail") at 0x779a92e1d820>
+  PB <bpy_struct, Bone("lower_lumbar") at 0x779a92e1d5a0> | Copy Rotation:COPY_ROTATION(influence=1.0 target=IK_Rig/lower_lumbar)
+  PB <bpy_struct, Bone("upper_lumbar") at 0x779a92e1d320> | Copy Rotation:COPY_ROTATION(influence=1.0 target=IK_Rig/upper_lumbar)
+  PB <bpy_struct, Bone("thoracic") at 0x779a92e1d0a0> | Copy Rotation:COPY_ROTATION(influence=1.0 target=IK_Rig/thoracic)
+  PB <bpy_struct, Bone("cervical") at 0x779a92e1ce20> | Copy Location:COPY_LOCATION(influence=1.0 target=IK_Rig/cervical) ; Copy Rotation:COPY_ROTATION(influence=1.0 target=IK_Rig/cervical)
+  PB <bpy_struct, Bone("cranium") at 0x779a92e1cba0> | Damped Track:DAMPED_TRACK(influence=1.0 target=IK_Rig/head_target) ; Copy Rotation:COPY_ROTATION(influence=1.0 target=IK_Rig/face)
+  PB <bpy_struct, Bone("face") at 0x779a92e1c920>
+  PB <bpy_struct, Bone("ceyebrow") at 0x779a92e1c6a0> | Copy Location:COPY_LOCATION(influence=1.0 target=IK_Rig/ceyebrow) ; Copy Rotation:COPY_ROTATION(influence=1.0 target=IK_Rig/ceyebrow)
+  PB <bpy_struct, Bone("jaw") at 0x779a92e1c420> | Copy Location:COPY_LOCATION(influence=1.0 target=IK_Rig/jaw) ; Copy Rotation:COPY_ROTATION(influence=1.0 target=IK_Rig/jaw)
+  PB <bpy_struct, Bone("lblip2") at 0x779a92e1c1a0> | Copy Location:COPY_LOCATION(influence=1.0 target=IK_Rig/lblip2) ; Copy Rotation:COPY_ROTATION(influence=1.0 target=IK_Rig/lblip2)
+  PB <bpy_struct, Bone("leye") at 0x779a92e23da0> | Copy Location:COPY_LOCATION(influence=1.0 target=IK_Rig/leye) ; Copy Rotation:COPY_ROTATION(influence=1.0 target=IK_Rig/leye)
+  PB <bpy_struct, Bone("rblip2") at 0x779a92e23b20> | Copy Location:COPY_LOCATION(influence=1.0 target=IK_Rig/rblip2) ; Copy Rotation:COPY_ROTATION(influence=1.0 target=IK_Rig/rblip2)
+  PB <bpy_struct, Bone("ltlip2") at 0x779a92e238a0> | Copy Location:COPY_LOCATION(influence=1.0 target=IK_Rig/ltlip2) ; Copy Rotation:COPY_ROTATION(influence=1.0 target=IK_Rig/ltlip2)
+  PB <bpy_struct, Bone("rtlip2") at 0x779a92e23620> | Copy Location:COPY_LOCATION(influence=1.0 target=IK_Rig/rtlip2) ; Copy Rotation:COPY_ROTATION(influence=1.0 target=IK_Rig/rtlip2)
+  PB <bpy_struct, Bone("reye") at 0x779a92e233a0> | Copy Location:COPY_LOCATION(influence=1.0 target=IK_Rig/reye) ; Copy Rotation:COPY_ROTATION(influence=1.0 target=IK_Rig/reye)
+  PB <bpy_struct, Bone("rclavical") at 0x779a92e23120> | Copy Rotation:COPY_ROTATION(influence=1.0 target=IK_Rig/rclavical)
+  PB <bpy_struct, Bone("rhumerus") at 0x779a92e22ea0> | Copy Location:COPY_LOCATION(influence=1.0 target=IK_Rig/rhumerus) ; Copy Rotation:COPY_ROTATION(influence=1.0 target=IK_Rig/rhumerus)
+  PB <bpy_struct, Bone("rhumerusX") at 0x779a92e22c20>
+  PB <bpy_struct, Bone("rradius") at 0x779a92e229a0> | Copy Rotation:COPY_ROTATION(influence=1.0 target=IK_Rig/rradius)
+  PB <bpy_struct, Bone("rradiusX") at 0x779a92e22720> | Copy Location:COPY_LOCATION(influence=1.0 target=IK_Rig/rradiusX) ; Copy Rotation:COPY_ROTATION(influence=1.0 target=IK_Rig/rradiusX)
+  PB <bpy_struct, Bone("rhand") at 0x779a92e224a0> | Copy Rotation:COPY_ROTATION(influence=1.0 target=IK_Rig/rhand) ; Copy Location:COPY_LOCATION(influence=1.0 target=IK_Rig/rhand)
+  PB <bpy_struct, Bone("r_d1_j1") at 0x779a92e22220> | Copy Rotation:COPY_ROTATION(influence=1.0 target=IK_Rig/r_d1_j1) ; Copy Location:COPY_LOCATION(influence=1.0 target=IK_Rig/r_d1_j1)
+  PB <bpy_struct, Bone("r_d1_j2") at 0x779a92e21fa0> | Copy Location:COPY_LOCATION(influence=1.0 target=IK_Rig/r_d1_j2) ; Copy Rotation:COPY_ROTATION(influence=1.0 target=IK_Rig/r_d1_j2)
+  PB <bpy_struct, Bone("r_d2_j1") at 0x779a92e21d20> | Copy Location:COPY_LOCATION(influence=1.0 target=IK_Rig/r_d2_j1) ; Copy Rotation:COPY_ROTATION(influence=1.0 target=IK_Rig/r_d2_j1)
+  PB <bpy_struct, Bone("r_d2_j2") at 0x779a92e21aa0> | Copy Location:COPY_LOCATION(influence=1.0 target=IK_Rig/r_d2_j2) ; Copy Rotation:COPY_ROTATION(influence=1.0 target=IK_Rig/r_d2_j2)
+  PB <bpy_struct, Bone("r_d4_j1") at 0x779a92e21820> | Copy Location:COPY_LOCATION(influence=1.0 target=IK_Rig/r_d4_j1) ; Copy Rotation:COPY_ROTATION(influence=1.0 target=IK_Rig/r_d4_j1)
+  PB <bpy_struct, Bone("r_d4_j2") at 0x779a92e215a0> | Copy Location:COPY_LOCATION(influence=1.0 target=IK_Rig/r_d4_j2) ; Copy Rotation:COPY_ROTATION(influence=1.0 target=IK_Rig/r_d4_j2)
+  PB <bpy_struct, Bone("rhang_tag_bone") at 0x779a92e21320> | Copy Location:COPY_LOCATION(influence=1.0 target=IK_Rig/rhang_tag_bone) ; Copy Rotation:COPY_ROTATION(influence=1.0 target=IK_Rig/rhang_tag_bone)
+  PB <bpy_struct, Bone("lclavical") at 0x779a92e210a0> | Copy Rotation:COPY_ROTATION(influence=1.0 target=IK_Rig/lclavical)
+  PB <bpy_struct, Bone("lhumerus") at 0x779a92e20e20> | Copy Location:COPY_LOCATION(influence=1.0 target=IK_Rig/lhumerus) ; Copy Rotation:COPY_ROTATION(influence=1.0 target=IK_Rig/lhumerus)
+  PB <bpy_struct, Bone("lhumerusX") at 0x779a92e20ba0>
+  PB <bpy_struct, Bone("lradius") at 0x779a92e20920> | Copy Rotation:COPY_ROTATION(influence=1.0 target=IK_Rig/lradius)
+  PB <bpy_struct, Bone("lradiusX") at 0x779a92e206a0> | Copy Location:COPY_LOCATION(influence=1.0 target=IK_Rig/lradiusX) ; Copy Rotation:COPY_ROTATION(influence=1.0 target=IK_Rig/lradiusX)
+  PB <bpy_struct, Bone("lhand") at 0x779a92e20420> | Copy Location:COPY_LOCATION(influence=1.0 target=IK_Rig/lhand) ; Copy Rotation:COPY_ROTATION(influence=1.0 target=IK_Rig/lhand)
+  PB <bpy_struct, Bone("l_d4_j1") at 0x779a92e201a0> | Copy Location:COPY_LOCATION(influence=1.0 target=IK_Rig/l_d4_j1) ; Copy Rotation:COPY_ROTATION(influence=1.0 target=IK_Rig/l_d4_j1)
+  PB <bpy_struct, Bone("l_d4_j2") at 0x779a92e17da0> | Copy Location:COPY_LOCATION(influence=1.0 target=IK_Rig/l_d4_j2) ; Copy Rotation:COPY_ROTATION(influence=1.0 target=IK_Rig/l_d4_j2)
+  PB <bpy_struct, Bone("l_d2_j1") at 0x779a92e17b20> | Copy Location:COPY_LOCATION(influence=1.0 target=IK_Rig/l_d2_j1) ; Copy Rotation:COPY_ROTATION(influence=1.0 target=IK_Rig/l_d2_j1)
+  PB <bpy_struct, Bone("l_d2_j2") at 0x779a92e178a0> | Copy Location:COPY_LOCATION(influence=1.0 target=IK_Rig/l_d2_j2) ; Copy Rotation:COPY_ROTATION(influence=1.0 target=IK_Rig/l_d2_j2)
+  PB <bpy_struct, Bone("l_d1_j1") at 0x779a92e17620> | Copy Location:COPY_LOCATION(influence=1.0 target=IK_Rig/l_d1_j1) ; Copy Rotation:COPY_ROTATION(influence=1.0 target=IK_Rig/l_d1_j1)
+  PB <bpy_struct, Bone("l_d1_j2") at 0x779a92e173a0> | Copy Location:COPY_LOCATION(influence=1.0 target=IK_Rig/l_d1_j2) ; Copy Rotation:COPY_ROTATION(influence=1.0 target=IK_Rig/l_d1_j2)
+  PB <bpy_struct, Bone("lhang_tag_bone") at 0x779a92e17120> | Copy Location:COPY_LOCATION(influence=1.0 target=IK_Rig/lhang_tag_bone) ; Copy Rotation:COPY_ROTATION(influence=1.0 target=IK_Rig/lhang_tag_bone)
+
+=== DRIVERS (object level, incl. pose.bones paths) ===
+
+=== ACTIONS ===
+
+=== IMAGES ===
+IMG 'basic_hand.jpg' 256x256 src=FILE filepath=//../../../../base/models/players/kyle/basic_hand.jpg packed=True
+IMG 'blaster_pistol_inworld.jpg' 512x512 src=FILE filepath=C:/base/models/weapons2/blaster_pistol/blaster_pistol_inworld.jpg packed=True
+IMG 'blaster_w.jpg' 512x512 src=FILE filepath=C:/base/models/weapons2/blaster_r/blaster_w.jpg packed=True
+IMG 'head.png' 512x512 src=FILE filepath=//../../../../base/models/players/lief_casual/head.png packed=True
+IMG 'hips_02.jpg.001' 512x512 src=FILE filepath=//../../../../base/models/players/jedi_tf/hips_02.jpg packed=True
+IMG 'kyle_extras.jpg' 256x256 src=FILE filepath=//../../../../base/models/players/kyle/kyle_extras.jpg packed=True
+IMG 'kyle_face.jpg' 512x512 src=FILE filepath=//../../../../base/models/players/kyle/kyle_face.jpg packed=True
+IMG 'kyle_head.jpg' 256x512 src=FILE filepath=//../../../../base/models/players/kyle/kyle_head.jpg packed=True
+IMG 'kyle_legs.jpg' 512x512 src=FILE filepath=//../../../../base/models/players/kyle/kyle_legs.jpg packed=True
+IMG 'kyle_torso.jpg' 1024x512 src=FILE filepath=//../../../../base/models/players/kyle/kyle_torso.jpg packed=True
+IMG 'mouth_eyes.jpg' 128x128 src=FILE filepath=//../../../../base/models/players/kyle/mouth_eyes.jpg packed=True
+IMG 'Render Result' 0x0 src=VIEWER filepath= packed=False
+IMG 'saber_1_diff.jpg' 1024x1024 src=FILE filepath=C:/base/models/weapons2/saber_plasma/saber_1_diff.jpg packed=True
+IMG 'saber_dual_1_diff.jpg' 1024x1024 src=FILE filepath=C:/base/models/weapons2/saber_plasma/saber_dual_1_diff.jpg packed=True
+
+=== MATERIALS ===
+MAT '[NoMaterial].004' nodes=5
+MAT '[NoMaterial].010' nodes=5
+MAT 'Material' nodes=2
+MAT 'Material.001' nodes=5
+MAT 'Material.002' nodes=2
+MAT 'models/players/kyle/basic_hand.tga' nodes=3
+MAT 'models/players/kyle/kyle_extras.tga' nodes=3
+MAT 'models/players/kyle/kyle_face.tga' nodes=3
+MAT 'models/players/kyle/kyle_head.tga' nodes=3
+MAT 'models/players/kyle/kyle_legs.tga' nodes=3
+MAT 'models/players/kyle/kyle_torso.tga' nodes=3
+MAT 'models/players/kyle/mouth_eyes.tga' nodes=3
+MAT 'models/players/stormtrooper/caps.tga' nodes=5
+MAT 'models/weapons2/blaster_pistol/blaster_pistol_inworld.tga' nodes=3
+MAT 'models/weapons2/blaster_r/blaster_w.tga' nodes=3
+MAT 'models/weapons2/saber_plasma/saber_1_diff' nodes=3
+MAT 'models/weapons2/saber_plasma/saber_dual_1_diff' nodes=3
+
+=== TEXT DATABLOCKS ===
+TEXT 'Text' chars=3348 first='Jedi Academy Blender IK Rig V1.0
+Author: JustJordyn
+Recommended for Blender 2.91+
+
+-----------------'
+
+=== MESHES / OTHER ===
+MESH '*parent_0' verts=3 mods=[] mats=['[NoMaterial].004']
+MESH '*parent_0.001' verts=3 mods=[] mats=['[NoMaterial].010']
+MESH '1_0' verts=813 mods=[] mats=['models/weapons2/saber_plasma/saber_1_diff']
+MESH '1_0.001' verts=813 mods=[] mats=['models/weapons2/saber_plasma/saber_1_diff']
+MESH '1_0.002' verts=995 mods=[] mats=['models/weapons2/saber_plasma/saber_dual_1_diff']
+MESH 'BladeL' verts=208 mods=[] mats=['Material']
+MESH 'BladeR' verts=208 mods=[] mats=['Material']
+EMPTY 'BlasterPistol' display=PLAIN_AXES
+EMPTY 'BlasterRifle' display=PLAIN_AXES
+MESH 'boneshape' verts=32 mods=[] mats=[]
+MESH 'boneshape.001' verts=32 mods=[] mats=[]
+MESH 'boneshape3' verts=4 mods=[] mats=[]
+MESH 'BoneShape4' verts=32 mods=[] mats=[]
+MESH 'Floor' verts=4 mods=[] mats=['Material.002']
+MESH 'head_0' verts=248 mods=['ARMATURE'] mats=['models/players/kyle/kyle_head.tga']
+MESH 'head_cap_torso_off_0' verts=16 mods=['ARMATURE'] mats=['models/players/stormtrooper/caps.tga']
+MESH 'head_eyes_mouth_0' verts=166 mods=['ARMATURE'] mats=['models/players/kyle/mouth_eyes.tga']
+MESH 'head_face_0' verts=306 mods=['ARMATURE'] mats=['models/players/kyle/kyle_face.tga']
+MESH 'hips_0' verts=261 mods=['ARMATURE'] mats=['models/players/kyle/kyle_legs.tga']
+MESH 'hips_belt_0' verts=179 mods=['ARMATURE'] mats=['models/players/kyle/kyle_extras.tga']
+MESH 'hips_cap_l_leg_off_0' verts=11 mods=['ARMATURE'] mats=['models/players/stormtrooper/caps.tga']
+MESH 'hips_cap_r_leg_off_0' verts=11 mods=['ARMATURE'] mats=['models/players/stormtrooper/caps.tga']
+MESH 'hips_cap_torso_off_0' verts=16 mods=['ARMATURE'] mats=['models/players/stormtrooper/caps.tga']
+MESH 'hips_torso_0' verts=36 mods=['ARMATURE'] mats=['models/players/kyle/kyle_torso.tga']
+EMPTY 'Kyle' display=PLAIN_AXES
+MESH 'l_arm_0' verts=66 mods=['ARMATURE'] mats=['models/players/kyle/kyle_torso.tga']
+MESH 'l_arm_cap_l_hand_off_0' verts=10 mods=['ARMATURE'] mats=['models/players/stormtrooper/caps.tga']
+MESH 'l_arm_cap_torso_off_0' verts=8 mods=['ARMATURE'] mats=['models/players/stormtrooper/caps.tga']
+MESH 'l_hand_0' verts=300 mods=['ARMATURE'] mats=['models/players/kyle/basic_hand.tga']
+MESH 'l_hand_cap_l_arm_off_0' verts=10 mods=['ARMATURE'] mats=['models/players/stormtrooper/caps.tga']
+MESH 'l_hand_wrist_0' verts=29 mods=['ARMATURE'] mats=['models/players/kyle/kyle_torso.tga']
+MESH 'l_leg_0' verts=131 mods=['ARMATURE'] mats=['models/players/kyle/kyle_legs.tga']
+MESH 'l_leg_cap_hips_off_0' verts=11 mods=['ARMATURE'] mats=['models/players/stormtrooper/caps.tga']
+MESH 'r_arm_0' verts=66 mods=['ARMATURE'] mats=['models/players/kyle/kyle_torso.tga']
+MESH 'r_arm_cap_r_hand_off_0' verts=10 mods=['ARMATURE'] mats=['models/players/stormtrooper/caps.tga']
+MESH 'r_arm_cap_torso_off_0' verts=8 mods=['ARMATURE'] mats=['models/players/stormtrooper/caps.tga']
+MESH 'r_hand_0' verts=300 mods=['ARMATURE'] mats=['models/players/kyle/basic_hand.tga']
+MESH 'r_hand_cap_r_arm_off_0' verts=10 mods=['ARMATURE'] mats=['models/players/stormtrooper/caps.tga']
+MESH 'r_hand_wrist_0' verts=29 mods=['ARMATURE'] mats=['models/players/kyle/kyle_torso.tga']
+MESH 'r_leg_0' verts=131 mods=['ARMATURE'] mats=['models/players/kyle/kyle_legs.tga']
+MESH 'r_leg_cap_hips_off_0' verts=11 mods=['ARMATURE'] mats=['models/players/stormtrooper/caps.tga']
+EMPTY 'SaberDual' display=PLAIN_AXES
+EMPTY 'SaberL' display=PLAIN_AXES
+EMPTY 'SaberR' display=PLAIN_AXES
+EMPTY 'scene_root' display=PLAIN_AXES
+MESH 'StaffBlade1' verts=208 mods=[] mats=['Material']
+MESH 'StaffBlade2' verts=208 mods=[] mats=['Material']
+MESH 'stupidtriangle_off_0' verts=3 mods=['ARMATURE'] mats=['Material.001']
+MESH 'torso_0' verts=200 mods=['ARMATURE'] mats=['models/players/kyle/kyle_torso.tga']
+MESH 'torso_cap_head_off_0' verts=16 mods=['ARMATURE'] mats=['models/players/stormtrooper/caps.tga']
+MESH 'torso_cap_hips_off_0' verts=16 mods=['ARMATURE'] mats=['models/players/stormtrooper/caps.tga']
+MESH 'torso_cap_l_arm_off_0' verts=8 mods=['ARMATURE'] mats=['models/players/stormtrooper/caps.tga']
+MESH 'torso_cap_r_arm_off_0' verts=8 mods=['ARMATURE'] mats=['models/players/stormtrooper/caps.tga']
+MESH 'torso_collar_0' verts=50 mods=['ARMATURE'] mats=['models/players/kyle/kyle_extras.tga']
+MESH 'torso_l_shoulder_0' verts=27 mods=['ARMATURE'] mats=['models/players/kyle/kyle_torso.tga']
+MESH 'torso_r_shoulder_0' verts=27 mods=['ARMATURE'] mats=['models/players/kyle/kyle_torso.tga']
+MESH 'torso_shoulder_pad_0' verts=47 mods=['ARMATURE'] mats=['models/players/kyle/kyle_extras.tga']
+MESH 'w_blaster_0' verts=638 mods=[] mats=['models/weapons2/blaster_r/blaster_w.tga']
+MESH 'w_blaster_pistol_inworld_0' verts=535 mods=[] mats=['models/weapons2/blaster_pistol/blaster_pistol_inworld.tga']
+MESH 'w_handle_0' verts=75 mods=[] mats=['models/weapons2/blaster_r/blaster_w.tga']
