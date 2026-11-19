@@ -11,5 +11,10 @@ on:
 jobs:
   build:
     uses: ./.github/workflows/build.yml
+    # caller must grant the permissions the called job requests
+    # (reusable-workflow rule: nested jobs can't exceed the caller's)
+    permissions:
+      contents: read
+      actions: write
     with:
       version: ci
