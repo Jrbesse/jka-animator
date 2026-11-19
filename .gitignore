@@ -30,3 +30,6 @@ desktop.ini
 # Fixtures pulled from paks (never commit mod content — sanitize policy,
 # plan decision #3; see README)
 fixtures/
+
+# B4 release build output
+/dist/
