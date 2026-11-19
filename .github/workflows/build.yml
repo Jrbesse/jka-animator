@@ -20,6 +20,12 @@ on:
         description: Version stamped into the zip (e.g. 0.1.0)
         required: true
         type: string
+    secrets:
+      # the jka-animkit deploy key — declared here (required for the
+      # caller's 'secrets:' mapping to be valid), mapped by the callers
+      JKA_ANIMKIT_DEPLOY_KEY:
+        required: true
+        description: Read-only deploy key for Jrbesse/jka-animkit (base64-encoded)
     outputs:
       zip_path:
         description: Path (on the runner) of the built zip
