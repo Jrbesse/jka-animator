@@ -40,12 +40,20 @@ jobs:
         id: ak
         run: echo "ref=$(grep -v '^#' packaging/animkit.lock | tr -d '[:space:]')" >> "$GITHUB_OUTPUT"
 
-      - name: Write jka-animkit deploy key (read-only)
+      - name: Write jka-animkit deploy key (read-only, base64'd secret)
         run: |
           mkdir -p ~/.ssh
           chmod 700 ~/.ssh
-          printf '%s\n' "${{ secrets.JKA_ANIMKIT_DEPLOY_KEY }}" > ~/.ssh/ak_deploy
+          base64 -d > ~/.ssh/ak_deploy <<'EOF'
+          ${{ secrets.JKA_ANIMKIT_DEPLOY_KEY }}
+          EOF
           chmod 600 ~/.ssh/ak_deploy
+          # fail fast with diagnostics if the secret ever gets mangled
+          if ! ssh-keygen -y -f ~/.ssh/ak_deploy > /dev/null 2>&1; then
+            echo "deploy key invalid:"; wc -c ~/.ssh/ak_deploy
+            head -c 60 ~/.ssh/ak_deploy | od -c | head -3; exit 1
+          fi
+          echo "deploy key OK"
 
       - name: Checkout jka-animkit (pinned, private)
         env:
