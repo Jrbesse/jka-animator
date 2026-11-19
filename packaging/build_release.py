@@ -15,7 +15,13 @@ Assembles ONE folder Sheng can drop into his Windows Blender:
 Usage:
     python3 packaging/build_release.py [--version 0.1.0]
                                        [--animkit-src ~/work/jka-animkit]
+                                       [--jediacademy-zip PATH]
                                        [--out dist]
+
+--jediacademy-zip: the mrwonko/cagelight plugin zip. Defaults to the local
+dev fixture (fixtures/, gitignored). CI passes the zip built from the pinned
+upstream ref instead (mrwonko/Blender-Jedi-Academy-Tools tag v2.1.0 — the
+fixture was byte-identical to that tag's plugin zip).
 
 The 'animkit dir' the addon searches must be the folder that CONTAINS the
 'animkit' package — here that is <install>/lib. See the generated README.
@@ -55,6 +61,8 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--version", default="0.1.0")
     ap.add_argument("--animkit-src", default=os.path.expanduser("~/work/jka-animkit"))
+    ap.add_argument("--jediacademy-zip", default=os.path.join(
+        REPO, "fixtures", "blender-addon", "jediacademy.zip"))
     ap.add_argument("--out", default=os.path.join(REPO, "dist"))
     a = ap.parse_args()
 
@@ -86,9 +94,10 @@ def main():
     copy_pkg(os.path.join(REPO, "jka_anim_tools"), os.path.join(addons, "jka_anim_tools"))
 
     # 2. the GPL jediacademy dep (unzip, skip __MACOSX)
-    jz = os.path.join(REPO, "fixtures", "blender-addon", "jediacademy.zip")
+    jz = os.path.abspath(a.jediacademy_zip)
     if not os.path.isfile(jz):
-        sys.exit(f"jediacademy fixture missing: {jz}")
+        sys.exit(f"jediacademy fixture missing: {jz} "
+                 f"(or pass --jediacademy-zip)")
     with zipfile.ZipFile(jz) as z:
         for info in z.infolist():
             name = info.filename

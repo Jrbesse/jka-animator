@@ -1,0 +1,5 @@
+# Pinned jka-animkit commit for release builds (Jrbesse/jka-animkit, private).
+# Read by .github/workflows/ci.yml and release.yml.
+# Bump deliberately: after changing this, run the unit tests + a local
+# release build before cutting a tag.
+10f7af8d7f2bd59422f2ad4068833f597d0fb1cb
