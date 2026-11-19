@@ -23,6 +23,9 @@ exportop      GLA export orchestration        (bpy)
 nla           armature / NLA track / strip glue  (bpy)
 operators     the Blender Operators (B1)      (bpy)
 cfgops        the cfg editor Operators (B2)   (bpy)
+checkop       animkit-check core (B3)         (bpy-free)
+fingers       finger preset tables + grasp slerp (B3) (bpy-free)
+fingerops     the finger preset Operators (B3) (bpy)
 panel         N-panel UI + scene properties   (bpy)
 """
 
@@ -41,15 +44,17 @@ bl_info = {
 
 def register():
     import bpy
-    from . import operators, cfgops, panel
+    from . import fingerops, operators, cfgops, panel
     panel.register()
     operators.register()
     cfgops.register()
+    fingerops.register()
 
 
 def unregister():
     import bpy
-    from . import operators, cfgops, panel
+    from . import fingerops, operators, cfgops, panel
+    fingerops.unregister()
     cfgops.unregister()
     operators.unregister()
     panel.unregister()

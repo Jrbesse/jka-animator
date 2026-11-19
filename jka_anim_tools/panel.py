@@ -11,7 +11,8 @@ B1:  Reference (matching) / Rig / Export GLA
 B2:  Segments (animation.cfg) / Events (animevents.cfg) /
      Saber (saberanims.cfg) — driven by the cfgops.py operators over the
      shared animkit cfg layer (decision #12).
-B3:  Check (animkit-check over the character/skeleton dir) / Results.
+B3:  Check (animkit-check over the character/skeleton dir) /
+     Fingers (grasp / fist / open presets) / Results.
 """
 import bpy
 
@@ -302,6 +303,16 @@ class JKA_PT_Main(bpy.types.Panel):
         box = layout.box()
         box.label(text="Check (Segments base path + character)")
         box.operator("jka_anim.check_run", icon='CHECKMARK')
+
+        box = layout.box()
+        box.label(text="Fingers (12 bones: d1/d2/d4 x j1/j2 per hand)")
+        row = box.row(align=True)
+        row.operator("jka_anim.finger_preset", text="Grasp", icon='BONE',
+                     preset='GRASP')
+        row.operator("jka_anim.finger_preset", text="Fist", icon='BONE',
+                     preset='FIST')
+        row.operator("jka_anim.finger_preset", text="Open", icon='BONE',
+                     preset='OPEN')
 
         box = layout.box()
         box.label(text="Results")
