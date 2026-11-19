@@ -16,5 +16,8 @@ jobs:
     permissions:
       contents: read
       actions: write
+    # reusable workflows don't inherit secrets — map them explicitly
+    secrets:
+      JKA_ANIMKIT_DEPLOY_KEY: ${{ secrets.JKA_ANIMKIT_DEPLOY_KEY }}
     with:
       version: ci
