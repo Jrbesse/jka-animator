@@ -3,8 +3,9 @@
 #
 # Sources (none committed to this repo — sanitize policy, decision #3):
 #   * jka-animkit   — private, same owner; pinned via packaging/animkit.lock.
-#     The default GITHUB_TOKEN can read it for push/workflow_dispatch
-#     triggers on a public repo (fork PRs cannot — hence no PR triggers).
+#     The default GITHUB_TOKEN cannot read other repos, so the workflow uses
+#     a read-only deploy key (repo secret JKA_ANIMKIT_DEPLOY_KEY) and a
+#     shallow fetch of the pinned full SHA.
 #   * jediacademy   — mrwonko/Blender-Jedi-Academy-Tools (the public
 #     successor of the cagelight fork), pinned to tag v2.1.0. The v0.1.0
 #     fixture zip was verified byte-identical to that tag's plugin zip
@@ -27,6 +28,9 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: write  # artifact upload
     outputs:
       zip_path: ${{ steps.zip.outputs.path }}
     steps:
@@ -36,13 +40,21 @@ jobs:
         id: ak
         run: echo "ref=$(grep -v '^#' packaging/animkit.lock | tr -d '[:space:]')" >> "$GITHUB_OUTPUT"
 
+      - name: Write jka-animkit deploy key (read-only)
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          printf '%s\n' "${{ secrets.JKA_ANIMKIT_DEPLOY_KEY }}" > ~/.ssh/ak_deploy
+          chmod 600 ~/.ssh/ak_deploy
+
       - name: Checkout jka-animkit (pinned, private)
-        uses: actions/checkout@v4
-        with:
-          repository: Jrbesse/jka-animkit
-          ref: ${{ steps.ak.outputs.ref }}
-          path: vendor/jka-animkit
-          fetch-depth: 1
+        env:
+          GIT_SSH_COMMAND: ssh -i /home/runner/.ssh/ak_deploy -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new
+        run: |
+          git init vendor/jka-animkit
+          git -C vendor/jka-animkit remote add origin git@github.com:Jrbesse/jka-animkit.git
+          git -C vendor/jka-animkit fetch --depth 1 origin "${{ steps.ak.outputs.ref }}"
+          git -C vendor/jka-animkit checkout "${{ steps.ak.outputs.ref }}"
 
       - name: Checkout jediacademy dep (pinned public tag)
         uses: actions/checkout@v4

@@ -46,6 +46,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      actions: read  # artifact download
     steps:
       - uses: actions/download-artifact@v4
         with:
