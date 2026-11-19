@@ -133,14 +133,14 @@ validate against your character dir.
 
 ## Install (Windows Blender 5.x)
 
-1. **Copy the two addons** into your Blender addons folder:
-   - Blender default: `<Blender>/scripts/addons/`
-   - or your user addons dir (Blender → Edit → Preferences → Add-ons →
-     "Install..." reveals it).
-   - Copy BOTH `addons/jka_anim_tools` and `addons/jediacademy`.
+1. **Copy the two addons** into your Blender add-ons directory:
+   - Windows default: `%APPDATA%\\Blender Foundation\\Blender\\<version>\\scripts\\addons`
+     (Blender → Edit → Preferences → Add-ons shows the exact location).
+   - Copy BOTH folders: `addons/jka_anim_tools` and `addons/jediacademy`.
 
-2. **Point the addon at animkit.** Set the "animkit dir" field (in the
-   addon's Quick Setup prefs, N-panel → JKA tab) to:
+2. **Point the addon at animkit.** In the JKA N-panel (3D view → **N** →
+   **JKA** tab), in the *Segments (animation.cfg)* box, set the
+   **AnimKit Dir** field to:
 
        <this folder>\\lib
 
