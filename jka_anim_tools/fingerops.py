@@ -17,9 +17,40 @@ blender/b3_finger_apply_check.py driver invokes these same bpy.ops.
 """
 import bpy
 
+from mathutils import Matrix
+
 from . import fingers, nla
 from .cfgops import _sync_results
 from .common import JkaError
+
+
+def _rel_mat(preset, bone):
+    """mathutils 4x4 from the core's flat 16-float row-major REL matrix."""
+    m = fingers.preset_matrix(preset, bone)
+    return Matrix((
+        (m[0], m[1], m[2], m[3]),
+        (m[4], m[5], m[6], m[7]),
+        (m[8], m[9], m[10], m[11]),
+        (m[12], m[13], m[14], m[15]),
+    ))
+
+
+def _driver_armature(arm):
+    """The armature to actually pose. The export/bind skeleton (what
+    find_armature returns — the object named 'skeleton_root') is often a
+    PASSIVE MIRROR: its bones carry COPY_ROTATION/COPY_LOCATION
+    constraints that copy a working rig (the IK rig), so setting their
+    matrices has no effect. Follow a finger bone's copy constraint to its
+    target armature and pose THAT (the driver); fall back to `arm` if it
+    isn't constrained (already the driver)."""
+    for bone in fingers.FINGER_BONES:
+        pb = arm.pose.bones.get(bone)
+        if pb is None:
+            continue
+        for c in pb.constraints:
+            if c.type in ("COPY_ROTATION", "COPY_LOCATION") and c.target is not None:
+                return c.target
+    return arm
 
 
 def apply_preset(preset, context):
@@ -27,9 +58,10 @@ def apply_preset(preset, context):
     relative to each hand's current pose and key them at the current
     frame when the armature has an active action (never creates one).
     Returns report notes."""
-    arm = nla.find_armature(context)
-    if arm is None:
+    bind = nla.find_armature(context)
+    if bind is None:
         raise JkaError("no armature in the scene (load the IK rig first)")
+    arm = _driver_armature(bind)
     frame = int(context.scene.frame_current)
     has_action = (arm.animation_data is not None
                   and arm.animation_data.action is not None)
@@ -46,16 +78,12 @@ def apply_preset(preset, context):
         for j1 in fingers.FINGER_BONES:
             if fingers.PARENT_BONE[j1] != hand:
                 continue
-            j1m = bpy.types.Matrix(fingers.preset_matrix(preset, j1),
-                                   size=(4, 4))
-            t1 = m_hand @ j1m
+            t1 = m_hand @ _rel_mat(preset, j1)
             targets[j1] = t1
             j2 = [b for b in fingers.FINGER_BONES
                   if fingers.PARENT_BONE[b] == j1]
             if j2:
-                j2m = bpy.types.Matrix(fingers.preset_matrix(preset, j2[0]),
-                                       size=(4, 4))
-                targets[j2[0]] = t1 @ j2m
+                targets[j2[0]] = t1 @ _rel_mat(preset, j2[0])
 
     for bone in fingers.FINGER_BONES:
         pb = arm.pose.bones[bone]
