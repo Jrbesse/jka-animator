@@ -12,8 +12,13 @@ GLA + cfgs are validated directly, with one informational warning).
 
 **Output:** the Results collection —
 1. a summary line: `check <name>: OK (N warnings)` or
-   `check <name>: FAILED (N errors, M warnings)` (error icon when failed),
-2. every error (`[file] message`), then every warning.
+   `check <name>: FAILED (N errors, M warnings)` (error icon when failed;
+   N/M are the UN-condensed totals),
+2. every error (`[file] message`, never condensed), then the warnings
+   **condensed per warning type**: N findings of the same type in one
+   file collapse to `[file] ×N <first message> (lines a-b, c)` — a group
+   of one prints unchanged (no line suffix when the type carries no line
+   numbers).
 
 **Severity model:**
 - **error** — the engine rejects the file or reads it corruptly. Must fix.

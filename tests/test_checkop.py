@@ -141,7 +141,10 @@ class TestLines(Base):
     def test_counts(self):
         r = self._failed()
         lines = r.lines()
-        self.assertEqual(len(lines), 1 + len(r.errors) + len(r.warnings))
+        # summary + one line per error + one line per condensed warning
+        # group (warnings collapse per (file, type), Sheng retest #5)
+        self.assertEqual(len(lines),
+                         1 + len(r.errors) + len(r.condensed_warnings()))
 
     def test_order_and_flags(self):
         r = self._failed()
@@ -150,12 +153,12 @@ class TestLines(Base):
         self.assertEqual(lines[0][1], True)
         self.assertIn("FAILED", lines[0][0])
         body = lines[1:]
-        n_err, n_warn = len(r.errors), len(r.warnings)
+        n_err, n_cwarn = len(r.errors), len(r.condensed_warnings())
         for text, is_err in body[:n_err]:
             self.assertTrue(is_err)
         for text, is_err in body[n_err:]:
             self.assertFalse(is_err)
-        self.assertEqual(len(body), n_err + n_warn)
+        self.assertEqual(len(body), n_err + n_cwarn)
 
     def test_ok_summary(self):
         d = self.stage_skeleton()
@@ -165,6 +168,80 @@ class TestLines(Base):
         self.assertIn("OK", lines[0][0])
         if r.warnings:
             self.assertIn(str(len(r.warnings)), lines[0][0])
+
+
+class TestCondense(unittest.TestCase):
+    """The display condensing — pure CheckResult objects, no fixtures."""
+
+    def _res(self, warnings=(), errors=()):
+        return checkop.CheckResult("/tmp/char", not errors,
+                                   list(errors), list(warnings))
+
+    def test_single_warning_passes_through(self):
+        w = ("[animation.cfg] line 5: 'BOTH_X' is not a known engine anim "
+             "name — the game will WARN and IGNORE this segment")
+        r = self._res(warnings=[w])
+        self.assertEqual(r.lines()[1], (w, False))
+
+    def test_group_collapses_to_count_and_range(self):
+        w = [f"[animation.cfg] line {n}: 'BOTH_{i}' is not a known engine "
+             f"anim name — the game will WARN and IGNORE this segment"
+             for i, n in enumerate(range(1453, 1463))]
+        r = self._res(warnings=w)
+        warns = r.lines()[1:]
+        self.assertEqual(len(warns), 1)
+        text, is_err = warns[0]
+        self.assertIn("×10", text)
+        self.assertIn("lines 1453-1462", text)
+        self.assertIn("BOTH_0", text)  # first message shown verbatim
+        self.assertFalse(is_err)
+
+    def test_nonconsecutive_ranges(self):
+        w = [f"[animevents.cfg] line {n}: duplicate segment 'X' "
+             f"(last one wins)" for n in (18, 12, 13, 21, 20)]
+        r = self._res(warnings=w)
+        text = r.lines()[1][0]
+        self.assertIn("12-13, 18, 20-21", text)
+
+    def test_same_type_different_numbers_group(self):
+        w = ("[animevents.cfg] line 3: AEV_MOVE speed=5 outside the "
+             "engine's 0..255",
+             "[animevents.cfg] line 9: AEV_MOVE speed=99 outside the "
+             "engine's 0..255")
+        r = self._res(warnings=list(w))
+        warns = r.lines()[1:]
+        self.assertEqual(len(warns), 1)
+        self.assertIn("lines 3, 9", warns[0][0])
+
+    def test_different_types_stay_separate(self):
+        w = ("[animation.cfg] line 5: 'A' is not a known engine anim name",
+             "[animation.cfg] line 6: 'B' is not a known engine anim name",
+             "[animation.cfg] line 7: 'C' has numFrames=0 (treated as "
+             "empty by engine)")
+        r = self._res(warnings=list(w))
+        self.assertEqual(len(r.lines()[1:]), 2)
+
+    def test_identical_noline_warnings_group(self):
+        w = ("[model.glm] surface 'head' has no geometry in any LOD",
+             "[model.glm] surface 'leg' has no geometry in any LOD")
+        r = self._res(warnings=list(w))
+        warns = r.lines()[1:]
+        self.assertEqual(len(warns), 1)
+        self.assertIn("×2", warns[0][0])
+        self.assertNotIn("(lines", warns[0][0])
+
+    def test_errors_never_condensed(self):
+        warns = ("[animation.cfg] line 1: 'A' is not a known engine anim "
+                 "name",
+                 "[animation.cfg] line 2: 'B' is not a known engine anim "
+                 "name")
+        r = self._res(errors=["[a.gla] bad", "[a.gla] bad"],
+                      warnings=list(warns))
+        lines = r.lines()
+        # summary + both errors verbatim + one condensed warning group
+        self.assertEqual(len(lines), 4)
+        self.assertEqual(lines[1], ("[a.gla] bad", True))
+        self.assertEqual(lines[2], ("[a.gla] bad", True))
 
 
 if __name__ == "__main__":

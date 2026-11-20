@@ -255,8 +255,16 @@ parses it — GLM, GLA, `animation.cfg`, `animevents.cfg`, `model_default.skin`
    the error icon when the check failed.
 2. Every **error** (red): the engine rejects this file or reads it
    corruptly. Must be fixed before shipping.
-3. Every **warning**: the engine *tolerates* this (tolerance is
-   documented per finding) — review, usually fix, sometimes accept.
+3. **Warnings**: the engine *tolerates* these (tolerance is documented
+   per finding) — review, usually fix, sometimes accept. Warnings are
+   shown **condensed per warning type**: a group of identical findings
+   (e.g. one "not a known engine anim name" line per offending cfg
+   segment) collapses to one line with the count and the file-line
+   range, e.g.
+   `[animation.cfg] ×215 'BOTH_GUNGAN_TAUNT' is not a known engine anim
+   name — the game will WARN and IGNORE this segment (lines 1453-1667)`.
+   A lone warning prints unchanged. The summary line's count is the
+   UN-condensed total.
 
 A **clean check is necessary but not sufficient**: it proves the file is
 engine-legal, not that the animation looks right. The final gate is
