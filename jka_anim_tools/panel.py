@@ -322,6 +322,8 @@ class JKA_PT_Main(bpy.types.Panel):
         # --- B2: the cfg editor ---
         box = layout.box()
         box.label(text="Segments (animation.cfg)")
+        _op(box, "jka_anim.segments_load", icon='FILE_REFRESH',
+            text="Load segments")
         if p.segments:
             box.prop(p, "seg_filter", text="Filter")
         for i in _matched_segments(p)[:SEG_ROW_CAP]:
