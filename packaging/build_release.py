@@ -64,7 +64,7 @@ def copy_pkg(src, dst, skip=("__pycache__", ".pyc")):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--version", default="0.2.3")
+    ap.add_argument("--version", default="0.2.4")
     ap.add_argument("--animkit-src",
                     default=os.path.expanduser("~/work/jka-animkit"))
     ap.add_argument("--out", default=os.path.join(REPO, "dist"))
