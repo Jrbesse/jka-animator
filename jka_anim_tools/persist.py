@@ -35,6 +35,8 @@ PERSISTED = (
 # this explicitly.
 ENABLED = None
 _RESTORING = False
+# Guard so per-frame panel draws don't pile up deferred-restore timers.
+_SCHEDULED = False
 
 # The "already restored" marker: a custom property ON the scene (gone when
 # the scene is gone). Deliberately NOT id(scene): a deleted scene's id
@@ -117,9 +119,66 @@ def restore(p):
     return True
 
 
+def _do_restore():
+    """Deferred-restore timer body — runs in the MAIN LOOP, a context where
+    writing Scene ID data IS allowed. Marks the current scene restored and
+    fills its persisted fields from settings.json. Idempotent: a no-op if the
+    scene is already marked. Returns None (one-shot timer)."""
+    global _SCHEDULED
+    _SCHEDULED = False
+    try:
+        scene = bpy.context.scene
+        if scene is None or scene.get(_MARKER):
+            return None
+        _mark(scene)
+        p = getattr(scene, "jka_anim", None)
+        if p is not None:
+            restore(p)
+        try:
+            bpy.context.window.tag_redraw()
+        except Exception:
+            pass
+    except Exception as e:
+        print(f"jka_anim_tools: deferred settings restore failed: {e}")
+    return None
+
+
+def maybe_schedule_restore(scene):
+    """First-draw safety net that is SAFE to call from panel.draw().
+
+    A panel draw runs in a UI context where writing ID data (the scene's
+    ``jka_anim`` group, or a custom marker property on the scene) raises
+    ``AttributeError: Writing to ID classes in this context is not allowed``
+    — and an exception in draw() blanks the ENTIRE panel body. So this does
+    ONLY a read here: if the scene is not yet marked restored, it schedules a
+    one-shot timer that performs the actual restore in the main loop (where
+    such writes are permitted). Deduplicated via ``_SCHEDULED`` so per-frame
+    draws don't pile up timers. ``scene=None`` defers the check to the timer
+    (used from register(), where the context scene may not be ready yet).
+    """
+    global _SCHEDULED
+    if not _enabled():
+        return
+    if scene is not None:
+        try:
+            if scene.get(_MARKER):
+                return
+        except Exception:
+            pass
+    if _SCHEDULED:
+        return
+    _SCHEDULED = True
+    try:
+        bpy.app.timers.register(_do_restore, first_interval=0.0)
+    except Exception as e:
+        _SCHEDULED = False
+        print(f"jka_anim_tools: could not schedule settings restore: {e}")
+
+
 def ensure_restored(scene):
-    """First-draw safety net: restore into a scene we have not seen yet
-    (covers File > New and any path where load_post did not fire)."""
+    """SYNCHRONOUS restore — for NON-draw contexts only (load_post, an
+    operator, a test). Do NOT call from panel.draw(): it writes Scene ID
+    data, which the draw context forbids (see maybe_schedule_restore)."""
     if not _enabled():
         return
     if scene.get(_MARKER):
@@ -175,6 +234,10 @@ def register():
         return
     if _on_load_post not in bpy.app.handlers.load_post:
         bpy.app.handlers.load_post.append(_on_load_post)
+    # Restore the startup scene. Registration can run before the startup
+    # scene is ready (the write then silently fails and the scene is left
+    # unmarked), so ALSO schedule the deferred restore as a safety net — it
+    # is a no-op if the scene is already marked restored.
     try:
         scene = bpy.context.scene
         p = getattr(scene, "jka_anim", None)
@@ -183,6 +246,7 @@ def register():
             _mark(scene)
     except Exception:
         pass
+    maybe_schedule_restore(None)
 
 
 def unregister():

@@ -340,8 +340,12 @@ class JKA_PT_Main(bpy.types.Panel):
 
     def draw(self, context):
         p = context.scene.jka_anim
-        # first-draw settings restore (persist.py safety net)
-        persist.ensure_restored(context.scene)
+        # first-draw settings restore (persist.py safety net). Must NOT write
+        # here: a panel draw runs in a UI context where writing Scene ID data
+        # raises AttributeError and would blank the whole panel body.
+        # maybe_schedule_restore is read-only; it defers the actual restore
+        # to a main-loop timer (where such writes are allowed).
+        persist.maybe_schedule_restore(context.scene)
         layout = self.layout
 
         box = layout.box()
