@@ -90,6 +90,7 @@ the operators only need it at call time (review item #1).
 | `blender/b2_cfg_check.py` | 7 checks over the cfg ops via `bpy.ops`: segment load/jump/apply/add, events load/add/remove/save (validate-on-write), drift detection. |
 | `blender/b3_check_check.py` | 7 checks over `check_run`: the result ordering, error vs warning severity, the tool-bug-crash path. |
 | `blender/b3_finger_apply_check.py` | The 3 presets: read back the posed matrices (0.0000° diff), hands untouched, then a render vision-judged (clenched fist / relaxed open). |
+| `blender/b5_import_check.py` | 7 checks over the named-import + Rig-target path: import onto the working skeleton (g2 props, strip, marker, throwaway gone), fcurve fidelity vs a direct RANGE import, custom range (cfg untouched), IK-rig target (exact shared-hierarchy bones, re-aimed fingers, clean controls), saber/jump honoring the Rig target, markers (offset + clear), re-import replaces (no `.001`). |
 
 Pitfalls baked in: `bpy.ops` raises `RuntimeError` when an op returns
 CANCELLED with an error report (the exception text **is** the report) —

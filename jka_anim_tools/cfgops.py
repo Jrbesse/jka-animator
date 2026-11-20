@@ -12,8 +12,9 @@ nla.py. Operators only map scene properties -> core calls -> back, and
 report via self.report() + the scene's results collection.
 """
 import bpy
+import os
 
-from . import addon_bridge, animkit_bridge, anims, checkop, nla
+from . import addon_bridge, animimport, animkit_bridge, anims, checkop, nla, paths
 from .common import JkaError
 
 
@@ -190,7 +191,7 @@ class JKA_OT_SegmentJump(bpy.types.Operator):
                     loop, fps = seg.expected_props()
                     nla.set_action_props(action, loop, fps)
                     notes.append(f"g2_sequence_prop set on {seg.name!r}")
-                arm = nla.find_armature(context)
+                arm = nla.target_armature(p, context)
                 if nla.strip_for_action(arm, action) is None:
                     track, _strip = nla.add_strip(arm, action,
                                                   seg.first_frame, seg.num_frames)
@@ -496,7 +497,7 @@ class JKA_OT_SaberPresetApply(bpy.types.Operator):
                 action_note = f"reused action {preset.name!r}"
 
             # 3. the NLA strip (Sequences Layer 1 when free)
-            arm = nla.find_armature(context)
+            arm = nla.target_armature(p, context)
             if nla.strip_for_action(arm, action) is None:
                 track, _strip = nla.add_strip(arm, action, first, num)
                 strip_note = f"NLA strip on {track.name!r}"
@@ -510,6 +511,119 @@ class JKA_OT_SaberPresetApply(bpy.types.Operator):
         except JkaError as e:
             self.report({'ERROR'}, str(e))
             return {'CANCELLED'}
+
+
+# ---------------------------------------------------------------------------
+# Import a named animation (or a custom range) onto the target rig
+# ---------------------------------------------------------------------------
+
+class JKA_OT_AnimImport(bpy.types.Operator):
+    """Import the picked segment (or the typed custom range) from the
+    character's GLA as a new action on the target rig"""
+    bl_idname = "jka_anim.anim_import"
+    bl_label = "Import animation"
+    bl_description = ("Pull the picked segment (or the typed custom range) out "
+                      "of the character's GLA as a new action on the target "
+                      "rig — with a timeline marker at the range's first "
+                      "frame and an NLA strip. A re-import replaces the "
+                      "existing action of the same name")
+
+    custom: bpy.props.BoolProperty(
+        name="Custom range", default=False,
+        description="Import the typed custom range instead of the picked "
+                    "segment")
+
+    def execute(self, context):
+        p = _p(context)
+        try:
+            _need_cfg(p)
+            # "" survives only in stale saved files; "CUSTOM" is the
+            # live sentinel (RNA drops empty enum ids).
+            use_segment = (not self.custom) and \
+                p.imp_segment not in ("", "CUSTOM")
+            if use_segment:
+                try:
+                    i = int(p.imp_segment)
+                except ValueError:
+                    raise JkaError("no segment picked (Import box)")
+                if not p.segments or not (0 <= i < len(p.segments)):
+                    raise JkaError(
+                        "segment selection is stale — press Load (Segments)")
+                seg = p.segments[i]
+                name = seg.name
+                first, num = int(seg.first_frame), int(seg.num_frames)
+                loop, fps = seg.expected_props()
+            else:
+                name = p.imp_name.strip()
+                if not name:
+                    raise JkaError(
+                        "pick a segment, or give the custom import a name")
+                first, num = int(p.imp_first), int(p.imp_frames)
+                if num < 1:
+                    raise JkaError("the custom range needs at least 1 frame")
+                loop, fps = False, int(p.imp_fps)
+            if nla.scene_action(name) is not None:
+                nla.purge_action(name)
+            gla = paths.derive_ref_gla(p.basepath, p.character, p.ref_gla)
+            target = nla.target_armature(p, context)
+            _ensure_g2(p)
+            _action, notes = animimport.import_range(
+                gla, target, name, first, num, loop, fps,
+                addon_dir=p.addon_dir, animkit_dir=p.animkit_dir)
+            context.scene.frame_current = first
+            _sync_results(p, [(n, False) for n in notes] + [
+                (f"{name!r}: {num} frames from {os.path.basename(gla)} "
+                 f"imported into {target.name!r}", False)])
+            return {"FINISHED"}
+        except JkaError as e:
+            self.report({'ERROR'}, str(e))
+            return {'CANCELLED'}
+
+
+# ---------------------------------------------------------------------------
+# Timeline markers (labels) — the in-plugin analogue of the user's
+# 'timeline markers from animation.cfg' script
+# ---------------------------------------------------------------------------
+
+class JKA_OT_MarkersFromSegments(bpy.types.Operator):
+    """One timeline marker per loaded segment, on its first frame
+    (+ the offset field)"""
+    bl_idname = "jka_anim.markers_from_segments"
+    bl_label = "Markers from segments"
+    bl_description = ("One timeline marker per loaded segment, on the "
+                      "segment's first frame plus the offset field. The GLA "
+                      "workflow is 0-based like the engine, so the offset "
+                      "defaults to 0 (the +1 of 1-based manual scripts is "
+                      "one click away). Markers that already exist are "
+                      "moved, not duplicated")
+
+    def execute(self, context):
+        p = _p(context)
+        try:
+            if not p.segments:
+                raise JkaError(
+                    "no segments loaded — press Load in the Segments box")
+            created, moved = animimport.add_markers_from_segments(p)
+            _sync_results(p, [
+                (f"{created} markers created, {moved} moved "
+                 f"(offset {p.marker_offset})", False)])
+            return {"FINISHED"}
+        except JkaError as e:
+            self.report({'ERROR'}, str(e))
+            return {'CANCELLED'}
+
+
+class JKA_OT_MarkersClear(bpy.types.Operator):
+    """Remove every timeline marker in the scene"""
+    bl_idname = "jka_anim.markers_clear"
+    bl_label = "Clear markers"
+    bl_description = "Remove every timeline marker in the scene"
+
+    def execute(self, context):
+        p = _p(context)
+        n = animimport.clear_markers()
+        _sync_results(p, [(f"{n} markers removed", False)])
+        return {"FINISHED"}
 
 
 # ---------------------------------------------------------------------------
@@ -552,6 +666,9 @@ CLASSES = (
     JKA_OT_EventsSave,
     JKA_OT_SaberValidate,
     JKA_OT_SaberPresetApply,
+    JKA_OT_AnimImport,
+    JKA_OT_MarkersFromSegments,
+    JKA_OT_MarkersClear,
     JKA_OT_CheckRun,
 )
 

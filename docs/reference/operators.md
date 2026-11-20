@@ -64,7 +64,8 @@ and report via `self.report()` and the Results collection.
 
 **`jka_anim.segment_jump`** — *Jump to segment*
 - **Inputs:** selected segment row (`seg_selected`), `seg_jump_create`
-  (default on).
+  (default on), the **Rig target** (`target_arm` — where the action's
+  NLA strip lands; default the working skeleton).
 - **Effect:** sets the playhead to the segment's first frame; when
   `seg_jump_create`, creates the action (named exactly like the segment,
   with the cfg's loop/fps in its `g2_sequence_prop`) and NLA strip when
@@ -123,12 +124,66 @@ and report via `self.report()` and the Results collection.
 
 **`jka_anim.saber_preset_apply`** — *Apply saber preset*
 - **Inputs:** `saber_preset` (dropdown: guard + one attack per saber
-  style, from the cfg or the built-in fallback sheet).
+  style, from the cfg or the built-in fallback sheet), the **Rig
+  target** (`target_arm` — the armature the NLA strip lands on; default
+  the working skeleton).
 - **Effect:** three coordinated artifacts, named exactly like the cfg
   segment: (1) the `animation.cfg` segment — added + **saved** when new
   (next free frame, num=20, loop=-1, fps=20; an existing segment's cfg
   values are the truth), (2) the action (loop/fps per the segment),
   (3) the NLA strip. Moves the playhead to the segment start.
+
+### B2 — import (GLA → rig)
+
+**`jka_anim.anim_import`** — *Import animation* (two panel buttons:
+*Import segment into rig*, *Import custom range into rig*)
+- **Inputs:** the **Rig target** (`target_arm`), the operator property
+  `custom` (false = the picked `imp_segment`, true = the typed custom
+  range), `imp_segment` (a loaded Segments row; `""` = custom), and for
+  custom: `imp_name`, `imp_first`, `imp_frames`, `imp_fps`. The source
+  GLA is the derived reference GLA (`ref_gla` override or
+  `<base>/models/players/<char>/<char>.gla` / `model.gla` / stock
+  `_humanoid`).
+- **Effect:** RANGE-imports the frame range via the jediacademy
+  importer onto a throwaway `skeleton_root` (renaming the working
+  mirror to `rig_armature` first when it still wears the name), then
+  retargets the imported action onto the target rig:
+  - bones whose ENTIRE ancestor chain matches name-for-name in both
+    rigs: the source's keyed `location` + `rotation_quaternion` are
+    copied **verbatim** — bit-exact (the form the GLA importer keyed
+    and the exporter re-samples), so the re-exported GLA round-trips
+    unchanged;
+  - bones where the target's parent differs (the IK rig's chained
+    finger bones): parent-relative **re-aim** — per frame, per bone,
+    in the target's topological order,
+    `W_t = M_t(parent_t) @ M_src(parent_src)⁻¹ @ W_src` (root:
+    `W_t = W_src`), every term composed from keyed fcurve locals + rest
+    `matrix_local` (no evaluated `pose_bone.matrix` reads — stale in
+    `--background`);
+  - target-only bones (IK controls) are never touched;
+  - a new action named exactly like the segment (or the typed name)
+    with the cfg's loop/fps in `g2_sequence_prop` (custom ranges:
+    loop=False, typed fps), keyed `location` + `rotation_quaternion`
+    per frame at the absolute range frames;
+  - an NLA strip on the target; a timeline marker at the range's first
+    frame (deduped by name).
+  - **Re-import replaces** the existing action of the same name (its
+    strips on every armature are removed first — no `NAME.001`).
+- **Errors:** `no segments loaded — press Load in the Segments box`
+  (via the stale-selection guard); `give the custom import a name`;
+  `the custom range needs at least 1 frame`; `frames A..B are outside
+  the GLA (it holds N)`; the name-dance collision `both 'skeleton_root'
+  and 'rig_armature' objects exist`.
+
+**`jka_anim.markers_from_segments`** — *Markers from segments*
+- **Inputs:** the loaded Segments, `marker_offset` (default 0 — the
+  GLA workflow is 0-based like the engine).
+- **Effect:** one timeline marker per segment on
+  `first_frame + marker_offset`; existing markers of the same name are
+  **moved**, not duplicated.
+
+**`jka_anim.markers_clear`** — *Clear markers*
+- **Effect:** removes every timeline marker in the scene.
 
 ### B3 — check + fingers
 
@@ -168,10 +223,12 @@ Grasp / Fist / Open)
 3D view → sidebar (**N**) → category **JKA**. Boxes, top to bottom:
 **Base (set once — everything derives from it)**, **Reference
 (matching)**, **Rig**, **Export GLA**, **Segments (animation.cfg)**,
-**Events (animevents.cfg)**, **Saber (saberanims.cfg)**, **Check
-(Base Path + Character)**, **Fingers (12 bones: d1/d2/d4 x j1/j2 per
-hand)**, **Results**, **Dependencies (leave empty when installed in
-Preferences)** — every field carries a visible label. Settings
+**Animation (import into a rig)**, **Labels (timeline markers)**,
+**Events (animevents.cfg)**, **Check (Base Path + Character)**,
+**Fingers (12 bones: d1/d2/d4 x j1/j2 per hand)**, **Saber
+(saberanims.cfg — JA-Enhanced event mapping, optional)**, **Results**,
+**Dependencies (leave empty when installed in Preferences)** — every
+field carries a visible label. Settings
 (basepath, character, ranges, overrides) are persisted to a JSON in the
 user config dir and restored on the next session (auto-disabled in
 headless).
@@ -189,7 +246,7 @@ headless scripts use the same values via the CLI).
 |----------|----------------|---------|
 | `basepath` | dir, `""` | The ONE mod folder — the directory that contains `models/players`. Set once; the reference GLA, export output, in-GLA name, cfgs and check all derive from it. |
 | `character` | string, `_humanoid` | The folder under `models/players` (a real character or `_humanoid`). |
-| `ref_gla` | file, `""` | Reference .gla (base-relative or absolute). Empty = derive: `<base>/models/players/<character>/<character>.gla` when present, else the stock `_humanoid` GLA. |
+| `ref_gla` | file, `""` | Reference .gla (base-relative or absolute). Empty = derive: `<base>/models/players/<character>/<character>.gla` when present, else the NPC convention `model.gla`, else the stock `_humanoid` GLA. |
 | `ref_mode` | enum, `RANGE` | `RANGE` / `CFG` / `ALL` / `NONE` (see guide §3.1). |
 | `ref_start` | int, `0` | Range mode: first frame. |
 | `ref_frames` | int, `240` | Range mode: frame count. |
@@ -212,4 +269,8 @@ headless scripts use the same values via the CLI).
 | `evt_new_key` | int, `0` | Key frame, relative to the segment start. |
 | `evt_new_data` | string | Space-separated data fields (the panel prints the layout). |
 | `saber_preset` | enum (re-read from cfg each redraw) | Guard + one attack per style. |
+| `target_arm` | enum (armature objects; scene UI state) | The **Rig target** for Jump / Saber / Import. Stored id = the armature object name; a stale id (renamed/deleted) is healed to the default at draw. Default resolution: `skeleton_root` / `rig_armature` (the working skeleton, under either name), else the first armature. |
+| `imp_segment` | enum (`""` + loaded segments) | The Import box's segment pick; `""` = the custom range below. |
+| `imp_name` / `imp_first` / `imp_frames` / `imp_fps` | string / `0` / `20` / `20` | The custom-range import fields (name, first frame, frame count, fps). |
+| `marker_offset` | int, `0` | Frames added to each timeline marker's first frame (0-based by default; 1 for 1-based work). |
 | `results` | collection of `JkaAnim_Result` | `text` + `is_error` — every operator's output. |

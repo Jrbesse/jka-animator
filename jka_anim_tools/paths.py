@@ -84,8 +84,10 @@ def derive_ref_gla(basepath, character, explicit=""):
 
     An explicit value wins — a relative one is resolved against
     ``basepath``. Otherwise ``<base>/models/players/<character>/
-    <character>.gla`` when that file exists, else the stock
-    ``_humanoid`` GLA. JkaError when nothing can be derived.
+    <character>.gla`` when that file exists, else the NPC convention
+    ``<base>/models/players/<character>/model.gla`` (NPC folders ship
+    their GLA under that name), else the stock ``_humanoid`` GLA.
+    JkaError when nothing can be derived.
     """
     if explicit:
         if os.path.isabs(explicit):
@@ -106,12 +108,15 @@ def derive_ref_gla(basepath, character, explicit=""):
     own = os.path.join(base, "models", "players", char, f"{char}.gla")
     if os.path.isfile(own):
         return own
+    npc = os.path.join(base, "models", "players", char, "model.gla")
+    if os.path.isfile(npc):
+        return npc
     stock = os.path.join(base, *DEFAULT_REF_GLA.split("/"))
     if os.path.isfile(stock):
         return stock
     raise JkaError(
-        f"no reference GLA under {base} — tried {own} and {stock}; set "
-        "the Reference GLA field to the file you want")
+        f"no reference GLA under {base} — tried {own}, {npc} and "
+        f"{stock}; set the Reference GLA field to the file you want")
 
 
 def derive_export_paths(basepath, character, glapath="", ref=""):

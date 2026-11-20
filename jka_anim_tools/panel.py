@@ -23,15 +23,17 @@ Sections
 --------
 Base:  Base Path + Character (the only location fields)
 B1:    Reference (matching) / Rig / Export GLA
-B2:    Segments (animation.cfg) / Events (animevents.cfg) /
-       Saber (saberanims.cfg) — cfgops.py operators over the
-       bundled animkit cfg layer (decision #12)
-B3:    Check (animkit-check) / Fingers (presets) / Results
+B2:    Segments (animation.cfg) / Animation (import into a rig:
+       named segment or custom range, onto any rig — the 'Rig target'
+       dropdown also drives Jump and Saber) / Events (animevents.cfg)
+B3:    Check (animkit-check) / Fingers (presets) / Labels (timeline
+       markers) / Saber (saberanims.cfg — JA-Enhanced event mapping,
+       optional, demoted per Sheng retest #9) / Results
 Deps:  jediacademy Add-on Dir + animkit override (rarely needed)
 """
 import bpy
 
-from . import animkit_bridge, anims, persist
+from . import animkit_bridge, anims, common, persist
 
 # File-browser subtypes: bpy.props.FileType was removed in Blender 5.3 —
 # the raw subtype identifiers survive (in 4.x FileType.ANY/.DIRECTORY are
@@ -129,6 +131,44 @@ def _saber_preset_items(prop, context):
         return [("", "(animkit unavailable)", "")]
 
 
+def _target_arm_items(prop, context):
+    """The 'Rig target' dropdown: the auto default (id '') + every
+    armature in the scene, with friendly labels for the JKA working
+    skeleton (under either of its names) and the reference. The stored
+    id is the object NAME ('' = auto: the working skeleton); a stale
+    value (renamed/deleted armature) is healed in draw()."""
+    if hasattr(prop, "scene"):
+        context = prop
+    # NOTE: RNA drops EMPTY enum ids — the sentinels carry real ids.
+    items = [("AUTO", "(auto: working skeleton)", "")]
+    for o in context.scene.objects:
+        if o.type != "ARMATURE":
+            continue
+        if o.name in (common.MIRROR, common.RIG_NAME):
+            label = "Working skeleton"
+        elif o.name == common.REF_NAME:
+            label = "Reference"
+        else:
+            label = o.name
+        items.append((o.name, label, ""))
+    return items
+
+
+def _imp_segment_items(prop, context):
+    """The Import box's segment dropdown: the custom sentinel (id
+    'CUSTOM') + every loaded segment (id = collection index).
+    NOTE: RNA drops EMPTY enum ids — the sentinel carries a real id."""
+    if hasattr(prop, "scene"):
+        context = prop
+    p = context.scene.jka_anim
+    items = [("CUSTOM", "(custom range below)", "")]
+    for i, s in enumerate(p.segments):
+        items.append((str(i),
+                      f"{s.name}  {s.first_frame}..{s.first_frame + s.num_frames - 1}",
+                      ""))
+    return items
+
+
 def _matched_segments(p):
     """Indices of the segment rows matching the filter (case-insensitive
     substring; empty filter = all). The list can be 1600+ rows — this is
@@ -150,6 +190,12 @@ class JkaAnim_Segment(bpy.types.PropertyGroup):
     fps: bpy.props.IntProperty(name="FPS")
     has_action: bpy.props.BoolProperty(name="Has action")
     drift: bpy.props.BoolProperty(name="Drift")
+
+    def expected_props(self):
+        """(loop bool, fps int) the segment's action should carry — the
+        same mapping as the core SegmentInfo (import: loopFrames != -1
+        -> loop)."""
+        return bool(self.loop_frames != -1), int(self.fps)
 
 
 class JkaAnim_Event(bpy.types.PropertyGroup):
@@ -260,6 +306,29 @@ class JkaAnim_PropGroup(bpy.types.PropertyGroup):
         name="Preset", items=_saber_preset_items,
         description="Guard + one attack per saber style (openAnim from "
                     "saberanims.cfg, built-in sheet fallback)")
+    # --- import an animation onto a rig (scene UI state, not persisted) ---
+    # NOTE: with a dynamic items callback the default is the ITEM INDEX
+    # (0 = the '' sentinel = auto), not the id string.
+    target_arm: bpy.props.EnumProperty(
+        name="Rig target", items=_target_arm_items, default=0,
+        description="The armature Jump / Saber / Import act on. Default "
+                    "(auto): the working skeleton — not the active "
+                    "object, which after a reference load is the "
+                    "reference")
+    imp_segment: bpy.props.EnumProperty(
+        name="Segment", items=_imp_segment_items,
+        description="The animation.cfg segment to import (its frames come "
+                    "from the character's GLA); empty = the custom range "
+                    "below")
+    imp_name: bpy.props.StringProperty(name="Name")
+    imp_first: bpy.props.IntProperty(name="First", default=0, min=0)
+    imp_frames: bpy.props.IntProperty(name="Frames", default=20, min=1)
+    imp_fps: bpy.props.IntProperty(name="FPS", default=20, min=1)
+    marker_offset: bpy.props.IntProperty(
+        name="Marker offset", default=0,
+        description="Frames added to each marker's first frame. The GLA "
+                    "workflow is 0-based like the engine, so this "
+                    "defaults to 0 (use 1 for 1-based manual work)")
     results: bpy.props.CollectionProperty(type=JkaAnim_Result)
 
 
@@ -361,6 +430,39 @@ class JKA_PT_Main(bpy.types.Panel):
             row.prop(p, "seg_new_fps", text="FPS")
 
         box = layout.box()
+        box.label(text="Animation (import into a rig)")
+        name = p.target_arm
+        if name and name != "AUTO":
+            obj = context.scene.objects.get(name)
+            if obj is None or obj.type != "ARMATURE":
+                p.target_arm = "AUTO"  # stale: back to auto
+        box.prop(p, "target_arm", text="Rig target")
+        box.prop(p, "imp_segment", text="Segment")
+        _op(box, "jka_anim.anim_import", icon='IMPORT',
+            text="Import segment into rig")
+        box.label(text="Or a custom range (not in the cfg):")
+        row = box.row(align=True)
+        row.prop(p, "imp_name", text="Name")
+        row.prop(p, "imp_first", text="First")
+        row.prop(p, "imp_frames", text="Frames")
+        row.prop(p, "imp_fps", text="FPS")
+        _op(box, "jka_anim.anim_import", icon='IMPORT',
+            text="Import custom range into rig", custom=True)
+        box.label(text="the action is named after the segment (or the "
+                       "typed name), keyed frame-for-frame, with a "
+                       "timeline marker + NLA strip; a re-import "
+                       "replaces it", icon='INFO')
+
+        box = layout.box()
+        box.label(text="Labels (timeline markers)")
+        _op(box, "jka_anim.markers_from_segments", icon='MARKER_ON',
+            text="Markers from segments")
+        _op(box, "jka_anim.markers_clear", icon='X', text="Clear markers")
+        row = box.row(align=True)
+        row.prop(p, "marker_offset", text="Offset")
+        row.label(text="frames (0-based by default, like the engine)")
+
+        box = layout.box()
         box.label(text="Events (animevents.cfg)")
         box.prop(p, "evt_block", text="Block")
         box.prop(p, "evt_segment", text="Segment")
@@ -383,15 +485,6 @@ class JKA_PT_Main(bpy.types.Panel):
         _op(box, "jka_anim.events_save", icon='FILE_TICK', text="Save events")
 
         box = layout.box()
-        box.label(text="Saber (saberanims.cfg)")
-        box.prop(p, "saber_cfg", text="Saber cfg (override)")
-        _op(box, "jka_anim.saber_validate", icon='CHECKMARK',
-            text="Validate saber cfg")
-        box.prop(p, "saber_preset", text="Preset")
-        _op(box, "jka_anim.saber_preset_apply", icon='PLAY',
-            text="Apply saber preset")
-
-        box = layout.box()
         box.label(text="Check (Base Path + Character)")
         _op(box, "jka_anim.check_run", icon='CHECKMARK', text="Run check")
 
@@ -404,6 +497,16 @@ class JKA_PT_Main(bpy.types.Panel):
             preset='FIST')
         _op(row, "jka_anim.finger_preset", icon='BONE_DATA', text="Open",
             preset='OPEN')
+
+        box = layout.box()
+        box.label(text="Saber (saberanims.cfg — JA-Enhanced event "
+                       "mapping, optional)")
+        box.prop(p, "saber_cfg", text="Saber cfg (override)")
+        _op(box, "jka_anim.saber_validate", icon='CHECKMARK',
+            text="Validate saber cfg")
+        box.prop(p, "saber_preset", text="Preset")
+        _op(box, "jka_anim.saber_preset_apply", icon='PLAY',
+            text="Apply saber preset")
 
         box = layout.box()
         box.label(text="Results")

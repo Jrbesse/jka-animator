@@ -7,7 +7,18 @@ imports or copies its code (decisions #1/#9).
 """
 import sys
 
+import bpy
+
 from .common import JkaError
+
+
+def _addon_registered():
+    """Whether the jediacademy addon's classes are registered in this
+    session — probed via its ``g2_sequence_prop`` Action property (RNA
+    properties validate reliably). NOTE: ``hasattr(bpy.ops.import_scene,
+    'gla')`` is a FALSE POSITIVE on 5.x — bpy.ops attribute access is
+    lazy and does not validate registration (only invocation does)."""
+    return hasattr(bpy.types.Action, "g2_sequence_prop")
 
 
 def ensure_addon(addon_dir, op):
@@ -18,6 +29,8 @@ def ensure_addon(addon_dir, op):
     package folder (the unzipped zip's top level). Raises JkaError when it
     is missing or the addon fails to load.
     """
+    if _addon_registered():
+        return
     if not addon_dir:
         raise JkaError(
             f"the jediacademy addon's {op!r} operator is not available in "
@@ -35,3 +48,7 @@ def ensure_addon(addon_dir, op):
         jediacademy.register()
     except Exception as e:
         raise JkaError(f"failed to load the jediacademy addon from {addon_dir}: {e}")
+    if not _addon_registered():
+        raise JkaError(
+            f"the jediacademy addon registered but {op!r} is still "
+            f"unavailable (addon_dir={addon_dir})")

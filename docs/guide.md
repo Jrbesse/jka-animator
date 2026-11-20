@@ -178,7 +178,66 @@ start (the standard looping marker — every base-game loop uses it), `N>0`
 require a two-line engine-side addition (see the
 [validation reference](reference/validation.md#new-anim-names)).
 
-### 3.4 Finger presets
+### 3.4 Import named animations (and custom ranges)
+
+The **Animation (import into a rig)** box pulls a named segment — or a
+custom frame range — out of the character's GLA and onto **any rig in
+the scene** as a keyed action:
+
+1. **Rig target** — the armature the import (and Jump / Saber) act on.
+   It defaults to the **working skeleton** (the export mirror, whether
+   it is named `skeleton_root` or `rig_armature`) — *not* the active
+   object: after a reference load the active armature is the reference,
+   and keying presets/imports onto it is the trap this dropdown exists
+   to remove. The dropdown lists every armature in the scene
+   (`Working skeleton`, `Reference`, or any other rig — e.g. the IK
+   rig).
+2. **Segment** — pick a loaded segment (Load in the Segments box
+   first). **Import segment into rig** pulls the segment's frame range
+   from the character's GLA (the same GLA the reference load uses) and
+   creates:
+   - an **action named exactly like the segment** with the cfg's
+     loop/fps in its `g2_sequence_prop` (the exporter reads them
+     there);
+   - an **NLA strip** on the target rig;
+   - a **timeline marker** at the range's first frame.
+
+   Re-importing a segment **replaces** its action (no `NAME.001`).
+3. **Or a custom range** — type **Name / First / Frames / FPS** and
+   press **Import custom range into rig**. The cfg is **not touched**
+   (that's the Add-segment button's job in the Segments box); custom
+   ranges are for in-progress clips and one-off spans.
+
+Fidelity: the import keys pose-local `location` + `rotation_quaternion`
+for exactly the frames the engine GLA holds — an exact copy for the
+working skeleton. On a rig whose hierarchy differs (the IK rig's
+chained finger bones sit under `j1`, not the hand), those finger bones
+are **re-aimed**: each bone's parent-relative motion is preserved and
+expressed against its target parent. Bones that exist only on the
+target (IK controls) are never touched.
+
+*Name dance:* the import runs the jediacademy RANGE import onto a
+throwaway armature and moves its action to the target. If the working
+mirror still wears the name `skeleton_root`, it moves to
+`rig_armature` first (the same move the reference load makes), so the
+throwaway can never key the reference onto the rig.
+
+### 3.5 Timeline markers (labels)
+
+The **Labels (timeline markers)** box is the in-plugin form of the
+"timeline markers from animation.cfg" script:
+
+- **Markers from segments** — one timeline marker per loaded segment,
+  on its first frame. Existing markers of the same name are **moved**,
+  not duplicated.
+- **Offset** — frames added to every marker's first frame. The GLA
+  workflow is **0-based like the engine**, so the default is **0**; set
+  it to 1 for 1-based counting.
+- **Clear markers** — removes every timeline marker.
+
+Import adds a marker for each imported range (named after the action).
+
+### 3.6 Finger presets
 
 Keying the 12 engine finger bones (`l/r_d1_j1, d1_j2, d2_j1, d2_j2,
 d4_j1, d4_j2`) by hand is fiddly. The **Fingers** box poses them in one
@@ -196,7 +255,7 @@ at the current frame**; otherwise they're posed without keys (the Results
 box says which happened). Typical use: scrub to a frame, click a preset,
 key the rest of the body around it.
 
-### 3.5 Importing a `.xsi` clip (Max-authored animation) — status
+### 3.7 Importing a `.xsi` clip (Max-authored animation) — status
 
 Classic JKA clips were authored in 3ds Max and exported as Softimage|XSI
 dotXSI files on the JKA character skeleton. The suite's `.xsi` pipeline
@@ -209,9 +268,9 @@ cfg segment.
 panel button yet.** The pilot (`BOTH_WALK_MINIGUN`) ran it end to end and
 passed the in-engine check (decision #19); the general case — a panel
 import face plus the 4 remaining Max clips — is the next release's work.
-For now, the interactive path is §3.1–3.4 (reference matching + keying).
+For now, the interactive path is §3.1–3.6 (reference matching + keying).
 
-### 3.6 Export GLA
+### 3.8 Export GLA
 
 In **Export GLA** (everything derives from the **Base** box):
 
@@ -229,7 +288,7 @@ In **Export GLA** (everything derives from the **Base** box):
 Press **Export GLA**. It exports `skeleton_root` via the jediacademy
 add-on and restores the legacy Ghoul2 scale (0.64 on the stock
 `_humanoid`; the value comes from the GLA's `fScale`).
-**Then run the check** (§3.7) — the export path is byte-stable, but the
+**Then run the check** (§3.9) — the export path is byte-stable, but the
 gate is what proves the file is engine-legal.
 
 Two export caveats (both reproducible):
@@ -242,7 +301,7 @@ Two export caveats (both reproducible):
   bone at the root origin. Near-rest frames are fine — authored segments
   (walks, swings, idles) will not sit exactly at rest.
 
-### 3.7 Run check (the validation gate)
+### 3.9 Run check (the validation gate)
 
 The **Check** box uses the **Base** box's **Base Path + Character**
 (same two fields as everything else — there is no separate check path).
@@ -268,13 +327,13 @@ parses it — GLM, GLA, `animation.cfg`, `animevents.cfg`, `model_default.skin`
 
 A **clean check is necessary but not sufficient**: it proves the file is
 engine-legal, not that the animation looks right. The final gate is
-§3.8.
+§3.10.
 
 `Character` may also be the skeleton dir name `_humanoid` — a skeleton-only
 dir (GLA + cfgs, no `model.glm`) validates fine (the engine never loads it
 as a character; you'll see one informational warning).
 
-### 3.8 In-engine play (final gate)
+### 3.10 In-engine play (final gate)
 
 Launch the mod in your engine build (OpenJK / JKA: Enhanced) and play the
 character / segment in a map. On the development side this runs on the
