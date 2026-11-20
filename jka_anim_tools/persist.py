@@ -29,13 +29,26 @@ PERSISTED = (
     "addon_dir", "animkit_dir", "saber_cfg", "evt_block",
 )
 
-_RESTORING = False
-_RESTORED_SCENES = set()  # id(scene) already restored (first-draw safety net)
 # None = auto: enabled only in interactive sessions. Headless/background
 # runs (the blender/ drivers, CI, e2e) set scene properties freely and
 # must never write or restore the user's settings file; tests can flip
 # this explicitly.
 ENABLED = None
+_RESTORING = False
+
+# The "already restored" marker: a custom property ON the scene (gone when
+# the scene is gone). Deliberately NOT id(scene): a deleted scene's id
+# would sit in a module set forever, and a fresh scene reusing that
+# address would be skipped as already-restored — the restore silently
+# lost (the old _RESTORED_SCENES set had exactly this hole).
+_MARKER = "jka_anim_restored"
+
+
+def _mark(scene):
+    try:
+        scene[_MARKER] = True
+    except (TypeError, KeyError):
+        pass
 
 
 def _enabled():
@@ -109,10 +122,9 @@ def ensure_restored(scene):
     (covers File > New and any path where load_post did not fire)."""
     if not _enabled():
         return
-    key = id(scene)
-    if key in _RESTORED_SCENES:
+    if scene.get(_MARKER):
         return
-    _RESTORED_SCENES.add(key)
+    _mark(scene)
     p = getattr(scene, "jka_anim", None)
     if p is not None:
         restore(p)
@@ -121,44 +133,54 @@ def ensure_restored(scene):
 def _on_load_post(dummy=None):
     try:
         scene = bpy.context.scene
-        _RESTORED_SCENES.discard(id(scene))
         p = getattr(scene, "jka_anim", None)
         if p is not None:
             restore(p)
+            _mark(scene)
     except Exception as e:  # a settings failure must not block a file open
         print(f"jka_anim_tools: settings restore failed: {e}")
 
 
-def _make_update_callback():
-    def _upd(p, context):
-        save(p)
-    return _upd
+def on_change(self, context):
+    """The update callback for every persisted field (attached at PROPERTY
+    DEFINITION time — panel.py passes it to each bpy.props definition).
+
+    5.x gotcha (root cause of Sheng retest #8): in Blender 5.0 the RNA
+    property objects no longer expose a settable ``.update`` after
+    registration (and ``bpy.types.Scene.jka_anim`` is a non-subscriptable
+    ``_PropertyDeferred``), so the old post-registration attach loop
+    silently attached NOTHING — settings never saved, nothing restored.
+    Definition-time ``update=`` is the documented path on both 4.x and
+    5.x. ``self`` is the owning JkaAnim_PropGroup instance.
+
+    May run in a threaded context (Blender docs); save() is a small
+    atomic write and never raises.
+    """
+    save(self)
 
 
 def register():
-    """Attach update callbacks + the load_post handler.
+    """Attach the load_post handler + restore the startup scene.
 
     Must run AFTER the panel register (the jka_anim property must exist).
     No-op in headless/background mode (see ENABLED).
+
+    The per-field update callbacks are attached at PROPERTY DEFINITION
+    time (panel.py passes ``persist.on_change`` to each bpy.props
+    definition) — Blender 5.x does not allow attaching ``.update`` after
+    registration, and the old post-registration loop silently attached
+    nothing (Sheng retest #8).
     """
     if not _enabled():
         return
-    prop = bpy.types.Scene.jka_anim
-    cb = _make_update_callback()
-    for k in PERSISTED:
-        if hasattr(prop, k):
-            try:
-                prop[k].update = cb
-            except Exception:
-                pass
     if _on_load_post not in bpy.app.handlers.load_post:
         bpy.app.handlers.load_post.append(_on_load_post)
     try:
         scene = bpy.context.scene
         p = getattr(scene, "jka_anim", None)
         if p is not None:
-            _RESTORED_SCENES.add(id(scene))
             restore(p)
+            _mark(scene)
     except Exception:
         pass
 
@@ -171,11 +193,3 @@ def unregister():
             bpy.app.handlers.load_post.remove(_on_load_post)
     except Exception:
         pass
-    prop = getattr(bpy.types.Scene, "jka_anim", None)
-    if prop is not None:
-        for k in PERSISTED:
-            if hasattr(prop, k):
-                try:
-                    prop[k].update = None
-                except Exception:
-                    pass

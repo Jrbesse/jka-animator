@@ -170,54 +170,54 @@ class JkaAnim_Result(bpy.types.PropertyGroup):
 
 class JkaAnim_PropGroup(bpy.types.PropertyGroup):
     # --- the ONE location (persisted) ---
-    basepath: bpy.props.StringProperty(
+    basepath: bpy.props.StringProperty(update=persist.on_change,
         name="Base Path", subtype=FILE_DIR,
         description="The mod folder that CONTAINS models/players — set it "
                     "once; the reference GLA, output and cfgs all derive "
                     "from it")
-    character: bpy.props.StringProperty(
+    character: bpy.props.StringProperty(update=persist.on_change,
         name="Character", default="_humanoid",
         description="The folder under models/players you are working on "
                     "(a real character or _humanoid)")
     # --- reference (matching) ---
-    ref_gla: bpy.props.StringProperty(
+    ref_gla: bpy.props.StringProperty(update=persist.on_change,
         name="Reference GLA", subtype=FILE_ANY,
         description="The reference .gla to import for matching. Leave "
                     "empty to use <base>/models/players/<character>/ "
                     "<character>.gla (or the stock _humanoid GLA)")
-    ref_mode: bpy.props.EnumProperty(
+    ref_mode: bpy.props.EnumProperty(update=persist.on_change,
         name="Import mode", items=MODES, default="RANGE")
-    ref_start: bpy.props.IntProperty(
+    ref_start: bpy.props.IntProperty(update=persist.on_change,
         name="Start frame", default=0, min=0,
         description="Range mode: first frame")
-    ref_frames: bpy.props.IntProperty(
+    ref_frames: bpy.props.IntProperty(update=persist.on_change,
         name="Frames", default=240, min=1,
         description="Range mode: frame count")
     # --- export ---
-    exp_ref: bpy.props.StringProperty(
+    exp_ref: bpy.props.StringProperty(update=persist.on_change,
         name="Reference GLA (in-GLA)",
         default="models/players/_humanoid/_humanoid.gla",
         description="Base-relative reference GLA — copies bone indices. "
                     "The stock _humanoid is right for character work")
-    exp_custom_frames: bpy.props.BoolProperty(
+    exp_custom_frames: bpy.props.BoolProperty(update=persist.on_change,
         name="Custom frame range", default=False,
         description="Off: use the scene's current frame range")
-    exp_frame_start: bpy.props.IntProperty(
+    exp_frame_start: bpy.props.IntProperty(update=persist.on_change,
         name="Frame Start", default=0, min=0)
-    exp_frame_end: bpy.props.IntProperty(
+    exp_frame_end: bpy.props.IntProperty(update=persist.on_change,
         name="Frame End", default=239, min=0)
     # --- dependencies (rarely needed; persisted) ---
-    addon_dir: bpy.props.StringProperty(
+    addon_dir: bpy.props.StringProperty(update=persist.on_change,
         name="Jedi Academy Add-on Dir", subtype=FILE_DIR,
         description="Only when the separately-installed jediacademy "
                     "add-on is NOT enabled in Preferences: the directory "
                     "that CONTAINS the 'jediacademy' package folder")
-    animkit_dir: bpy.props.StringProperty(
+    animkit_dir: bpy.props.StringProperty(update=persist.on_change,
         name="AnimKit Dir (override)", subtype=FILE_DIR,
         description="Leave empty: the copy bundled with this add-on is "
                     "used. Override only to test a different animkit")
     # --- B2: cfg editor (segments / events / saber) ---
-    saber_cfg: bpy.props.StringProperty(
+    saber_cfg: bpy.props.StringProperty(update=persist.on_change,
         name="Saber cfg (override)", subtype=FILE_ANY,
         description="Explicit saberanims.cfg path; empty = "
                     "<base>/ext_data/saberanims.cfg")
@@ -242,7 +242,7 @@ class JkaAnim_PropGroup(bpy.types.PropertyGroup):
     seg_new_fps: bpy.props.IntProperty(name="FPS", default=20, min=1)
     events: bpy.props.CollectionProperty(type=JkaAnim_Event)
     evt_selected: bpy.props.IntProperty(name="Selected event")
-    evt_block: bpy.props.EnumProperty(
+    evt_block: bpy.props.EnumProperty(update=persist.on_change,
         name="Block", default="LOWER",
         items=(("LOWER", "LOWER", "the LOWEREVENTS block"),
                ("UPPER", "UPPER", "the UPPEREVENTS block")))
