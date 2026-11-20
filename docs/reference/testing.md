@@ -18,7 +18,7 @@ python tests/test_paths.py        # standalone script (sys.exit style), NOT a un
 | `test_anims.py` | 17 | the cfg core: segment load/add/save, event add/remove/save (validate-on-write), saber validation/presets — over the animkit fixtures (`JKA_ANIMKIT_DIR`). |
 | `test_checkop.py` | 13 | the check core: `resolve_char_dir` (character OR skeleton dir), `CheckResult.lines()` ordering (summary first, then errors, then warnings), crash-is-a-tool-bug (a corrupt-GLA test mutates the header `numBones` @ offset 84). |
 | `test_fingers.py` | 13 | the preset tables: hand-relative form, the FIST left-side mirror law (exact), the GRASP slerp midpoint, apply-matrix composition. |
-| `test_paths.py` | 6 | export path shaping/validation (the in-base-path rule, base-relative naming). |
+| `test_paths.py` | 16 | export path shaping/validation (the in-base-path rule, base-relative naming) + the `derive_*` helpers (basepath derivation walking up to `models/players`, reference-GLA + export-path derivation, errors naming the missing piece). |
 
 **Never run `python -m unittest discover tests`** — `test_paths.py` is a
 standalone script with a module-level `sys.exit`, and discover dies on it.
@@ -60,21 +60,28 @@ typo → 102 vs 2 bone-pool entries) — "it compiles" / "it runs" is not
 ## 3. The registered-zip smoke
 
 `packaging/b4_register_smoke.py` verifies the **shipped zip**, not the
-dev clone: load the add-on from a clean extraction (pointing only at the
-zipped components), register, verify all **15** operators are registered
-+ callable and the panel class exists, unregister.
+dev clone: it extracts the zip (arg after `--`, else the newest
+`dist/jka-anim-tools-*.zip`) into a clean temp dir, scrubs the dev clone
+from `sys.path` + the env, registers the shipped package, and verifies:
+
+* all **15** `jka_anim.*` operators + `JKA_PT_Main` registered
+  (`hasattr(bpy.ops.jka_anim, <name>)` per idname — `dir(bpy.types)`
+  misses dynamically registered operator classes),
+* **animkit resolves to the bundled copy** (`jka_anim_tools/lib/animkit`)
+  with no env var / field set,
+* the one-base-path scene props exist and the old multi-path props are
+  gone,
+* unregisters clean.
 
 ```
-rm -rf ~/work/b4_test && mkdir -p ~/work/b4_test
-python3 -m zipfile -e dist/jka-anim-suite-X.Y.Z.zip ~/work/b4_test/
-cd ~/work/b4_test && mv jka-anim-suite-X.Y.Z/* . && rmdir jka-anim-suite-X.Y.Z
-blender --background --factory-startup --python <repo>/packaging/b4_register_smoke.py
-# expect: REGISTER OK: 15/15 operators, panel=ok / REGISTER SMOKE: PASS
+blender --background --factory-startup \
+  --python <repo>/packaging/b4_register_smoke.py
+# expect: REGISTER SMOKE: PASS (with "bundled animkit: ok",
+#         "one-base-path props: ok | old multi-path props removed: ok")
 ```
 
-Enumerating via `dir(bpy.types)` is **wrong** for dynamically registered
-operator classes (it misses them) — the smoke checks `hasattr(bpy.ops.
-jka_anim, <name>)` per idname.
+The smoke also proves registration works with **jediacademy absent** —
+the operators only need it at call time (review item #1).
 
 ## 4. Headless flow drivers (bpy, `blender/`)
 

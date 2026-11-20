@@ -30,13 +30,17 @@ def _ak(p):
 
 
 def _need_cfg(p):
-    if not p.cfg_basepath or not p.cfg_character:
-        raise JkaError("set the Base Path and Character (cfg section) first")
+    if not p.basepath or not p.character:
+        raise JkaError(
+            "set the Base Path (top of the panel, the mod folder that "
+            "contains models/players) and the Character")
 
 
 def _need_base(p):
-    if not p.cfg_basepath:
-        raise JkaError("set the Base Path (cfg section) first")
+    if not p.basepath:
+        raise JkaError(
+            "set the Base Path (top of the panel, the mod folder that "
+            "contains models/players)")
 
 
 def _ensure_g2(p):
@@ -149,7 +153,7 @@ class JKA_OT_SegmentsLoad(bpy.types.Operator):
         try:
             _need_cfg(p)
             ak = _ak(p)
-            segs, warns = anims.load_segments(ak, p.cfg_basepath, p.cfg_character)
+            segs, warns = anims.load_segments(ak, p.basepath, p.character)
             _sync_segments(p, segs, _drift_map(p, segs))
             _sync_results(p, [(f"{len(segs)} segments loaded", False)]
                           + [(w, False) for w in warns])
@@ -255,10 +259,10 @@ class JKA_OT_SegmentAdd(bpy.types.Operator):
                     raise JkaError(f"segment {name!r} already exists")
             ak = _ak(p)
             info, _text = anims.add_segment(
-                ak, p.cfg_basepath, p.cfg_character,
+                ak, p.basepath, p.character,
                 name, p.seg_new_first, p.seg_new_num, p.seg_new_loop,
                 p.seg_new_fps)
-            path = anims.save_segment_doc(ak, p.cfg_basepath, p.cfg_character)
+            path = anims.save_segment_doc(ak, p.basepath, p.character)
             row = p.segments.add()
             row.name = info.name
             row.first_frame = int(info.first_frame)
@@ -293,9 +297,9 @@ class JKA_OT_EventsLoad(bpy.types.Operator):
         try:
             _need_cfg(p)
             ak = _ak(p)
-            anims.load_events(ak, p.cfg_basepath, p.cfg_character)
+            anims.load_events(ak, p.basepath, p.character)
             seg = _evt_target(p)
-            pairs = anims.events_for(ak, p.cfg_basepath, p.cfg_character,
+            pairs = anims.events_for(ak, p.basepath, p.character,
                                      p.evt_block, seg.name)
             _sync_events(p, pairs)
             p.evt_selected = 0
@@ -320,10 +324,10 @@ class JKA_OT_EventAdd(bpy.types.Operator):
             _need_cfg(p)
             ak = _ak(p)
             seg = _evt_target(p)
-            info = anims.add_event(ak, p.cfg_basepath, p.cfg_character,
+            info = anims.add_event(ak, p.basepath, p.character,
                                    p.evt_block, seg.name, p.evt_new_type,
                                    p.evt_new_key, p.evt_new_data)
-            pairs = anims.events_for(ak, p.cfg_basepath, p.cfg_character,
+            pairs = anims.events_for(ak, p.basepath, p.character,
                                      p.evt_block, seg.name)
             _sync_events(p, pairs)
             p.evt_selected = len(p.events) - 1
@@ -351,9 +355,9 @@ class JKA_OT_EventRemove(bpy.types.Operator):
             ak = _ak(p)
             seg = _evt_target(p)
             row = p.events[min(max(p.evt_selected, 0), len(p.events) - 1)]
-            anims.remove_event(ak, p.cfg_basepath, p.cfg_character,
+            anims.remove_event(ak, p.basepath, p.character,
                                p.evt_block, row.block_index)
-            pairs = anims.events_for(ak, p.cfg_basepath, p.cfg_character,
+            pairs = anims.events_for(ak, p.basepath, p.character,
                                      p.evt_block, seg.name)
             _sync_events(p, pairs)
             _sync_results(p, [(f"removed {row.etype} @ {row.key_frame} — "
@@ -378,7 +382,7 @@ class JKA_OT_EventsSave(bpy.types.Operator):
         try:
             _need_cfg(p)
             ak = _ak(p)
-            warns, path = anims.save_events(ak, p.cfg_basepath, p.cfg_character)
+            warns, path = anims.save_events(ak, p.basepath, p.character)
             _sync_results(p, [(f"saved {path}", False)]
                           + [(w, False) for w in warns])
             return {"FINISHED"}
@@ -409,7 +413,7 @@ class JKA_OT_SaberValidate(bpy.types.Operator):
             _need_base(p)
             ak = _ak(p)
             styles, errors, warnings, path = anims.validate_saberanims(
-                ak, p.cfg_basepath, p.saber_cfg)
+                ak, p.basepath, p.saber_cfg)
             lines = []
             if not styles:
                 lines.append((f"no saberanims.cfg at {path} — the engine "
@@ -441,7 +445,7 @@ class JKA_OT_SaberPresetApply(bpy.types.Operator):
         try:
             _need_cfg(p)
             ak = _ak(p)
-            presets = anims.saber_presets(ak, p.cfg_basepath, p.saber_cfg)
+            presets = anims.saber_presets(ak, p.basepath, p.saber_cfg)
             try:
                 idx = int(p.saber_preset or 0)
             except ValueError:
@@ -455,14 +459,14 @@ class JKA_OT_SaberPresetApply(bpy.types.Operator):
             #    For an EXISTING segment the cfg is the truth (loop/fps come
             #    from it — e.g. BOTH_STAND1 loops in the cfg); the preset's
             #    defaults (num=20, fps=20, loop=-1) apply to new segments.
-            segs, _warns = anims.load_segments(ak, p.cfg_basepath, p.cfg_character)
+            segs, _warns = anims.load_segments(ak, p.basepath, p.character)
             existing = next((s for s in segs if s.name == preset.name), None)
             if existing is None:
-                first = anims.next_free_frame(ak, p.cfg_basepath, p.cfg_character)
+                first = anims.next_free_frame(ak, p.basepath, p.character)
                 info, _text = anims.add_segment(
-                    ak, p.cfg_basepath, p.cfg_character, preset.name,
+                    ak, p.basepath, p.character, preset.name,
                     first, preset.num_frames, preset.loop_frames, preset.fps)
-                path = anims.save_segment_doc(ak, p.cfg_basepath, p.cfg_character)
+                path = anims.save_segment_doc(ak, p.basepath, p.character)
                 first, num = first, preset.num_frames
                 loop, fps = preset.loop_frames != -1, preset.fps
                 cfg_note = (f"added segment {preset.name!r} @ {first} to "
@@ -527,7 +531,7 @@ class JKA_OT_CheckRun(bpy.types.Operator):
         try:
             _need_cfg(p)
             ak = _ak(p)
-            d = checkop.resolve_char_dir(p.cfg_basepath, p.cfg_character)
+            d = checkop.resolve_char_dir(p.basepath, p.character)
             res = checkop.check_dir(ak, d)
             _sync_results(p, res.lines())
             self.report({'INFO'} if res.ok else {'WARNING'}, res.summary())

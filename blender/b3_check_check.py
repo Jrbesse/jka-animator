@@ -85,8 +85,8 @@ def main():
 
     jka_anim_tools.register()
     p = bpy.context.scene.jka_anim
-    p.cfg_basepath = work_root
-    p.cfg_character = character
+    p.basepath = work_root
+    p.character = character
     p.animkit_dir = animkit_dir
 
     failures = []
@@ -99,7 +99,7 @@ def main():
             failures.append(what)
 
     def run_check(char):
-        p.cfg_character = char
+        p.character = char
         try:
             ret = bpy.ops.jka_anim.check_run()
             return set(ret), ""
@@ -167,10 +167,10 @@ def main():
           f"ret={ret} msg={msg!r}")
 
     # 6. no basepath -> CANCELLED
-    saved = p.cfg_basepath
-    p.cfg_basepath = ""
+    saved = p.basepath
+    p.basepath = ""
     ret, msg = run_check(skeleton)
-    p.cfg_basepath = saved
+    p.basepath = saved
     check(6, "no basepath -> CANCELLED",
           "CANCELLED" in ret and "Base Path" in msg,
           f"ret={ret} msg={msg!r}")

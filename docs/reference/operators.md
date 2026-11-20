@@ -14,14 +14,23 @@ and report via `self.report()` and the Results collection.
 ### B1 — reference, rig, export
 
 **`jka_anim.load_reference`** — *Load reference GLA*
-- **Inputs:** `ref_gla` (absolute .gla path), `ref_basepath`, `ref_mode`
-  (`RANGE`/`CFG`/`ALL`/`NONE`), `ref_start`, `ref_frames` (RANGE mode),
-  `addon_dir` (only if jediacademy is not installed).
+- **Inputs:** `ref_gla` (base-relative or absolute .gla; default
+  `models/players/_humanoid/_humanoid.gla`), the shared `basepath` (if
+  empty it is derived from `ref_gla` — walk up to the folder containing
+  `models/players`), `ref_mode` (`RANGE`/`CFG`/`ALL`/`NONE`), `ref_start`,
+  `ref_frames` (RANGE mode), `addon_dir` (only if jediacademy is not
+  installed).
 - **Effect:** imports the reference GLA as a fresh armature named
   `reference_humanoid` (renames anything out of the `skeleton_root`
   name trap first); it animates independently, the rig is untouched.
+  Afterwards the reference is re-aligned to the rig mirror's world
+  transform (identity parent-inverse) — a replacement model's
+  `scene_root` convention rotation cannot leave it on the wrong plane.
+  In CFG mode the first strip's action becomes the armature's
+  `data_action` so the keys are visible.
 - **Errors:** any import failure surfaces as the jediacademy/animkit
-  message via `JkaError`.
+  message via `JkaError`; the base-path derivation errors name the
+  missing piece.
 
 **`jka_anim.prep_rig`** — *Prep rig for export*
 - **Inputs:** none (the scene's `skeleton_root` mirror armature).
@@ -30,22 +39,25 @@ and report via `self.report()` and the Results collection.
   legacy g2 scale for export. Reports the count of stripped constraints.
 
 **`jka_anim.export_gla`** — *Export GLA*
-- **Inputs:** `exp_basepath`, `exp_filepath` (absolute, **inside** the
-  base path), `exp_glapath` (base-relative in-GLA name), `exp_ref`
-  (base-relative reference GLA, default
-  `models/players/_humanoid/_humanoid.gla` — copies bone indices),
-  `exp_custom_frames` + `exp_frame_start`/`exp_frame_end` (off = the
-  scene's current frame range), `addon_dir`.
+- **Inputs:** the shared `basepath` + `character` (the output, in-GLA
+  path and reference are **derived**:
+  `<base>/models/players/<char>/<char>.gla`), `exp_ref` (base-relative
+  reference GLA, default `models/players/_humanoid/_humanoid.gla` —
+  copies bone indices), `exp_custom_frames` + `exp_frame_start`/
+  `exp_frame_end` (off = the scene's current frame range), `addon_dir`.
 - **Effect:** exports `skeleton_root` to .gla via the jediacademy add-on,
   restores the legacy g2 scale. Validate afterwards with `check_run`.
-- **Errors:** `set the Output file first (inside the Base Path)`; any
-  export failure (e.g. `Could not find reference GLA` on an absolute
-  `exp_ref`).
+- **Errors:** `no Base Path set — set it at the top of the panel (the
+  mod folder that contains models/players)`; `set the Character (the
+  folder under models/players, e.g. assassin_droid) so the output path
+  can be derived`; any export failure (e.g. `Could not find reference
+  GLA` on an absolute `exp_ref`).
 
 ### B2 — segments (`animation.cfg`)
 
 **`jka_anim.segments_load`** — *Load segments*
-- **Inputs:** `cfg_basepath`, `cfg_character`, `animkit_dir`.
+- **Inputs:** the shared `basepath` + `character`, `animkit_dir`
+  (override; empty = the bundled copy).
 - **Effect:** parses the character's `animation.cfg` into the Segments
   list and drift-checks the scene's actions against the cfg (per row:
   has-action + drift flags). Results: `<n> segments loaded` + warnings.
@@ -103,7 +115,7 @@ and report via `self.report()` and the Results collection.
 ### B2 — saber (`saberanims.cfg`)
 
 **`jka_anim.saber_validate`** — *Validate saber cfg*
-- **Inputs:** `cfg_basepath`, `saber_cfg` (override; empty =
+- **Inputs:** the shared `basepath`, `saber_cfg` (override; empty =
   `<base>/ext_data/saberanims.cfg`).
 - **Effect:** parses + validates the sheet; lists each style's `openAnim`.
   A **missing file is not an error** — the engine falls back to its
@@ -121,8 +133,9 @@ and report via `self.report()` and the Results collection.
 ### B3 — check + fingers
 
 **`jka_anim.check_run`** — *Run check*
-- **Inputs:** `cfg_basepath` + `cfg_character` (the Check box reuses the
-  Segments fields) → resolves `<base>/models/players/<character>`.
+- **Inputs:** the shared `basepath` + `character` (the Check box reuses
+  the **Base** box — there is no separate check path) → resolves
+  `<base>/models/players/<character>`.
 - **Effect:** runs animkit's `check` over the directory (GLM + GLA +
   cfgs + skin; see [validation](validation.md)) and fills Results:
   summary line (error icon when failed), then errors, then warnings.
@@ -153,11 +166,15 @@ Grasp / Fist / Open)
 ## The panel (`JKA_PT_Main`)
 
 3D view → sidebar (**N**) → category **JKA**. Boxes, top to bottom:
-**Reference (matching)**, **Rig**, **Export GLA**, **Segments
-(animation.cfg)**, **Events (animevents.cfg)**, **Saber
-(saberanims.cfg)**, **Check (Segments base path + character)**, **Fingers
-(12 bones: d1/d2/d4 x j1/j2 per hand)**, **Results** — plus the
-**Add-on Dir** property when set.
+**Base (set once — everything derives from it)**, **Reference
+(matching)**, **Rig**, **Export GLA**, **Segments (animation.cfg)**,
+**Events (animevents.cfg)**, **Saber (saberanims.cfg)**, **Check
+(Base Path + Character)**, **Fingers (12 bones: d1/d2/d4 x j1/j2 per
+hand)**, **Results**, **Dependencies (leave empty when installed in
+Preferences)** — every field carries a visible label. Settings
+(basepath, character, ranges, overrides) are persisted to a JSON in the
+user config dir and restored on the next session (auto-disabled in
+headless).
 
 Segment row icons: `NONE` = no action, `ACTION` = action present,
 `MODIFIER_OFF` (+ red `* action differs from the cfg` line) = drift.
@@ -170,24 +187,21 @@ headless scripts use the same values via the CLI).
 
 | Property | Type / default | Meaning |
 |----------|----------------|---------|
-| `ref_gla` | file, `""` | Reference .gla (absolute path). |
-| `ref_basepath` | dir | Mod folder (needed by `Cfg` mode). |
+| `basepath` | dir, `""` | The ONE mod folder — the directory that contains `models/players`. Set once; the reference GLA, export output, in-GLA name, cfgs and check all derive from it. |
+| `character` | string, `_humanoid` | The folder under `models/players` (a real character or `_humanoid`). |
+| `ref_gla` | file, `""` | Reference .gla (base-relative or absolute). Empty = derive: `<base>/models/players/<character>/<character>.gla` when present, else the stock `_humanoid` GLA. |
 | `ref_mode` | enum, `RANGE` | `RANGE` / `CFG` / `ALL` / `NONE` (see guide §3.1). |
 | `ref_start` | int, `0` | Range mode: first frame. |
 | `ref_frames` | int, `240` | Range mode: frame count. |
-| `exp_basepath` | dir | Mod folder (contains `models/`). |
-| `exp_filepath` | file, `""` | Output .gla — absolute, inside the base path. |
-| `exp_glapath` | string | Base-relative in-GLA name. |
 | `exp_ref` | string, `models/players/_humanoid/_humanoid.gla` | Base-relative reference GLA (bone indices). |
 | `exp_custom_frames` | bool, off | Off = scene frame range; on = the two fields below. |
 | `exp_frame_start` / `exp_frame_end` | int, `0` / `239` | Custom export range. |
-| `addon_dir` | dir, `""` | Only if jediacademy is not installed: the dir containing the `jediacademy` package. |
-| `animkit_dir` | dir, `""` | The dir that **contains** the `animkit` package; empty = `$JKA_ANIMKIT_DIR` or the dev clone. |
-| `cfg_basepath` | dir | Mod folder containing `models/players/<character>/...`. |
-| `cfg_character` | string | Character folder name (or `_humanoid` for the shared skeleton). |
+| `addon_dir` | dir, `""` | Only if the separately-installed `jediacademy` is not enabled in Preferences: the dir containing the `jediacademy` package. |
+| `animkit_dir` | dir, `""` | Override; empty = the copy **bundled** in the add-on (`lib/animkit`). |
 | `saber_cfg` | file, `""` | Explicit `saberanims.cfg` path; empty = `<base>/ext_data/saberanims.cfg`. |
 | `segments` | collection of `JkaAnim_Segment` | One row per cfg segment: `name`, `first_frame`, `num_frames`, `loop_frames`, `fps`, `has_action`, `drift`. Read-only display — Load refreshes it; files are edited via the core + the add/save ops. |
 | `seg_selected` | int | Selected segment row. |
+| `seg_filter` | string, `""` | Substring filter for the segment list (the list draws at most 50 rows). |
 | `seg_jump_create` | bool, on | Jump: also create the action + NLA strip when missing. |
 | `seg_new_name` / `seg_new_first` / `seg_new_num` / `seg_new_loop` / `seg_new_fps` | string / `0` / `20` / `-1` / `20` | The Add-segment fields (`seg_new_loop`: -1 none, 0 loop, N loop point). |
 | `events` | collection of `JkaAnim_Event` | One row per event of the selected block+segment: `etype`, `key_frame`, `data`, `line`, `block_index`. |

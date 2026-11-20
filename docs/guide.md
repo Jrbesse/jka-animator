@@ -1,9 +1,9 @@
 # JKA Anim Tools — user guide
 
 End-to-end: from an uninstalled machine to a validated, in-engine-verified
-character animation. Target machine: Windows with Blender 4.1+ (5.3.0
-tested). Every command, path, operator name, and panel label below is
-checked against the shipped code — if you see something different, the
+character animation. Target machine: Windows with Blender 4.1+ (5.1 and
+5.3.0 tested). Every command, path, operator name, and panel label below
+is checked against the shipped code — if you see something different, the
 panel label is the truth and the guide is stale.
 
 **Scope:** animation side only. The finished model (`.glm` mesh + weights,
@@ -14,65 +14,58 @@ panel label is the truth and the guide is stale.
 
 ## 1. Install
 
-Get the zip from the
-[releases](https://github.com/Jrbesse/jka-animator/releases):
-`jka-anim-suite-X.Y.Z.zip`. Unzipping gives one folder:
+Two add-ons, both installed via **Edit → Preferences → Add-ons →
+Install from Disk…**:
 
-```
-jka-anim-suite-X.Y.Z\
-  README-install.md        ← the install sheet (this section)
-  addons\
-    jka_anim_tools\        ← this suite (MIT)
-    jediacademy\           ← the GLA import/export add-on (GPL, hard dependency)
-  lib\
-    animkit\               ← the JKA format library the suite imports (MIT, pure Python)
-```
+1. **JKA Animation Tools** (this add-on, MIT) —
+   `jka-anim-tools-X.Y.Z.zip` from the
+   [releases](https://github.com/Jrbesse/jka-animator/releases). It is a
+   standard add-on zip (one `jka_anim_tools` package at the zip root);
+   the cfg/GLA format library (`animkit`) is **bundled inside** it, so
+   nothing extra to point at.
+2. **Jedi Academy Import/Export Tools** (`jediacademy`, by mrwonko) — the
+   GLA/GLM import/export engine this add-on calls. It carries its own
+   license, so it is **not bundled** with this zip. Get it once,
+   separately, from
+   [mrwonko/Blender-Jedi-Academy-Tools](https://github.com/mrwonko/Blender-Jedi-Academy-Tools)
+   (tag `v2.1.0`) and install that zip the same way.
 
-1. **Copy the two add-on folders** into your Blender add-ons directory:
-   - Windows default: `%APPDATA%\Blender Foundation\Blender\<version>\scripts\addons`
-     (Blender → Edit → Preferences → Add-ons shows you the exact location).
-   - Copy **both** `addons\jka_anim_tools` and `addons\jediacademy`
-     (the folders, not the zip).
-2. **Enable both add-ons** in Preferences → Add-ons:
-   - *Jedi Academy Import/Export Tools* (`jediacademy`)
-   - *JKA Animation Tools* (`jka_anim_tools`)
-3. **Point the suite at animkit.** In the JKA N-panel (3D view → **N** →
-   **JKA** tab), in the *Segments (animation.cfg)* box, set **AnimKit Dir**
-   to the `lib` folder of the unzipped release:
+Then enable both in the Add-ons list: *Jedi Academy Import/Export Tools*
+and *JKA Animation Tools*.
 
-   ```
-   C:\...\jka-anim-suite-X.Y.Z\lib
-   ```
+Verify: press **N** in the 3D view → the **JKA** tab (the last of the
+tabs: Item / Tool / View / Animation / JKA) shows the boxes from §2.
 
-   It must be the folder that **contains** `animkit\`. Alternative: set the
-   environment variable `JKA_ANIMKIT_DIR` to that same `lib` folder.
-4. Verify: press **N** in the 3D view → the **JKA** tab (the last of the
-   tabs: Item / Tool / View / Animation / JKA) shows the boxes from §2.
-
-> The suite loads `jediacademy` on demand if it is not already enabled,
-> using the optional **Add-on Dir** field (bottom of the panel) — but
-> enabling it in Preferences is the normal path.
+> If you'd rather not install `jediacademy` through Preferences, the
+> **Dependencies** box at the bottom of the panel takes an **Add-on Dir**
+> pointing at the folder that *contains* the `jediacademy` package; it is
+> loaded on demand.
 
 ---
 
 ## 2. The JKA panel
 
-All state lives in the scene (it persists while the file is open). The
-boxes, top to bottom:
+All state lives in the scene (it persists while the file is open). Path
+and range settings are **also saved to the add-on's config file** —
+close Blender, reopen it, they are back (headless/CLI sessions never
+touch the saved settings). Every field has a visible label next to it.
+The boxes, top to bottom:
 
 | Box | What it drives |
 |-----|----------------|
+| **Base (set once — everything derives from it)** | **Base Path** + **Character**. The reference GLA, export output, in-GLA name, segments, events, saber cfg and the check all derive from these two fields. |
 | **Reference (matching)** | Import a reference `.gla` to pose against. |
 | **Rig** | Prep the rig for export (strip contamination). |
-| **Export GLA** | Write the `.gla`. |
-| **Segments (animation.cfg)** | The segment table: load / jump / apply / add. |
+| **Export GLA** | Write the `.gla` (output derived from Base + Character). |
+| **Segments (animation.cfg)** | The segment table: load / filter / jump / apply / add. |
 | **Events (animevents.cfg)** | Footsteps/sounds/effects: load / add / remove / save. |
 | **Saber (saberanims.cfg)** | Saber attack sheet: validate / apply preset. |
-| **Check (Segments base path + character)** | Run the validation gate. |
+| **Check (Base Path + Character)** | Run the validation gate. |
 | **Fingers (12 bones: d1/d2/d4 x j1/j2 per hand)** | FIST / OPEN / GRASP presets. |
 | **Results** | Every operator's output: notes, warnings, errors (error lines get a red icon). |
+| **Dependencies** | Only if `jediacademy` is not installed in Preferences (§1). |
 
-Most boxes need a **base path** — *your mod folder*, i.e. the directory
+The **Base** box is *your mod folder*, i.e. the directory
 that **contains** `models\...`. A working character tree looks like:
 
 ```
@@ -104,25 +97,32 @@ Load reference → (optional) Prep rig → Jump to segment → pose + key
 
 In **Reference (matching)**:
 
-- **Reference GLA** — absolute path to a `.gla` to import. The stock
-  skeleton file (`<base>\models\players\_humanoid\_humanoid.gla` — 1,663
-  segments in the stock cfg) is the usual choice.
-- **Base Path** — your mod folder (needed for `Cfg` mode).
-- **Import mode**:
+- **Reference GLA** — the `.gla` to import, base-relative (default: the
+  stock skeleton `models/players/_humanoid/_humanoid.gla` — 1,663
+  segments in the stock cfg). An absolute path works too; if the **Base**
+  box is empty, the base is derived from this path (walk up to the
+  folder containing `models\players`) and the error names the piece it
+  cannot find.
+- **Mode**:
   - `Range` (default) — one action over `Start frame .. Start+Frames-1`.
     Fast; right for working on a single segment.
   - `Cfg` — one NLA strip per `animation.cfg` segment: scrub by segment
-    name. Slower on big skeletons (several minutes for the full
-    `_humanoid` on a weak CPU).
+    name. **Slow on big skeletons** — the full stock `_humanoid` took
+    ~37 minutes headless (1,663 strips, per-bone work on every
+    sequence).
   - `All` — every frame in one action. Slow.
   - `None` — geometry only, no animation.
-- **Start frame / Frames** — the range for `Range` mode (segment start
-  frames are in the Segments box, §3.3).
+- **Start / Frames** — the range for `Range` mode (segment start frames
+  are in the Segments box, §3.3).
 
 Press **Load reference GLA**. The reference arrives as a second armature
-named `reference_humanoid` and animates independently; your rig stays
-untouched. Scrub the timeline, pose your rig to match, and insert
-keyframes into your segment's action as you go.
+named `reference_humanoid`, **on the same plane as the imported GLM
+model's skeleton** (it inherits the rig's world transform, so a
+replacement model's convention rotation cannot leave it lying flat), and
+animates independently; your rig stays untouched. In `Cfg` mode the
+first strip is set as the armature's active action, so the keyframes are
+visible immediately. Scrub the timeline, pose your rig to match, and
+insert keyframes into your segment's action as you go.
 
 *Why the button exists:* the jediacademy importer would otherwise reuse
 any existing object named `skeleton_root` and silently key the reference
@@ -143,10 +143,12 @@ Run this once per session, after opening the rig and before exporting.
 
 This box is the engine's segment table, live.
 
-1. Set **Cfg Base Path** (mod folder), **Character** (the folder name
-   under `models\players`, e.g. `assassin_droid` — or `_humanoid` for the
-   shared skeleton), and **AnimKit Dir** (§1).
-2. Press **Load segments**. Each row is one cfg segment:
+1. Set the **Base** box: **Base Path** (mod folder) + **Character** (the
+   folder name under `models\players`, e.g. `assassin_droid` — or
+   `_humanoid` for the shared skeleton).
+2. Press **Load segments**. The list is capped at 50 drawn rows; the
+   **Filter** field narrows it by name (a `… N more match the filter`
+   line appears when it is capped). Each row is one cfg segment:
    `NAME  first..last` with an icon —
    - empty icon: no Blender action for this segment yet
    - action icon: an action with this name exists
@@ -211,18 +213,16 @@ For now, the interactive path is §3.1–3.4 (reference matching + keying).
 
 ### 3.6 Export GLA
 
-In **Export GLA**:
+In **Export GLA** (everything derives from the **Base** box):
 
-- **Base Path** — your mod folder.
-- **Output File** — absolute path of the `.gla` to write. It **must sit
-  inside** the Base Path (the in-GLA name is derived from it).
-- **GLA Path** — the base-relative name stored *inside* the GLA, e.g.
-  `models/players/mychar/mychar.gla` or
-  `models/players/_humanoid/_humanoid.gla` when appending to the shared
-  skeleton.
-- **Reference** — base-relative reference GLA used to copy **bone
-  indices** (default `models/players/_humanoid/_humanoid.gla`). Must be
-  base-relative; absolute paths fail with "Could not find reference GLA".
+- **Output** — shown as a label, derived from the base path + character:
+  `<Base Path>\models\players\<Character>\<Character>.gla`. There is no
+  separate output or in-GLA-path field — the tree is always packaged the
+  same way.
+- **Ref GLA (in-GLA path)** — base-relative reference GLA used to copy
+  **bone indices** (default `models/players/_humanoid/_humanoid.gla`).
+  Must be base-relative; absolute paths fail with "Could not find
+  reference GLA".
 - **Custom frame range** — off (default): the scene's current frame range
   is exported; on: the two frame fields.
 
@@ -244,7 +244,8 @@ Two export caveats (both reproducible):
 
 ### 3.7 Run check (the validation gate)
 
-The **Check** box uses the Segments box's **Cfg Base Path + Character**.
+The **Check** box uses the **Base** box's **Base Path + Character**
+(same two fields as everything else — there is no separate check path).
 Press **Run check**: it validates the whole directory the way the engine
 parses it — GLM, GLA, `animation.cfg`, `animevents.cfg`, `model_default.skin`
 — and fills the **Results** box:
@@ -366,10 +367,10 @@ rather than a failed check. Report it; don't paper over it.
 | `action 'X' has no g2_sequence_prop (created outside the jediacademy importer)` | The action predates the importer's property; recreate it via Jump. |
 | `no saberanims.cfg at X — the engine uses its built-in style sheet` | Informational: the sheet is optional. |
 | `write blocked — see the Results box` | Validate-on-write failed; the `animevents.cfg` file was **not touched** — read the red lines. |
-| `check: no such directory: ... — expected a character or skeleton dir under models/players/ in the basepath` | Cfg Base Path + Character must resolve to `<base>\models\players\<character>`. |
+| `check: no such directory: ... — expected a character or skeleton dir under models/players/ in the basepath` | Base Path + Character must resolve to `<base>\models\players\<character>`. |
 | `no armature in the scene (load the IK rig first)` / `bone 'X' missing from ... — the rig must be the _humanoid skeleton` | The finger presets need the `_humanoid`-skeleton rig loaded. |
 | `NOT keyed (no active action on the armature)` | Informational: the preset posed the fingers but there was no active action to key into. |
-| `Could not find reference GLA` (jediacademy) | The Export **Reference** field must be **base-relative**. |
+| `Could not find reference GLA` (jediacademy) | The Export **Ref GLA (in-GLA path)** field must be **base-relative**. |
 
 ### 4.3 New anim names
 

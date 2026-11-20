@@ -29,25 +29,29 @@ operators, each a button for one verified flow step:
 - **Check** — the animkit validation gate: your whole character directory
   (GLM + GLA + cfgs + skin) validated the way the engine parses it, with
   every finding listed in the panel.
-- **GLA export** — through the community jediacademy add-on (GPL, a hard
-  dependency), with legacy Ghoul2 scale restored and path validation.
+- **GLA export** — through the separately-installed jediacademy add-on
+  (its own license — see below), with legacy Ghoul2 scale restored and
+  path validation.
 
 ## Install (one time)
 
-Download the [latest release zip](https://github.com/Jrbesse/jka-animator/releases)
-(`jka-anim-suite-X.Y.Z.zip`). Requires Blender **4.1+** (everything is
-verified on 5.3.0).
+Two add-ons, both via **Edit → Preferences → Add-ons → Install from
+Disk…**:
 
-1. Copy the two add-on folders — `addons/jka_anim_tools` and
-   `addons/jediacademy` — into your Blender add-ons directory. Edit →
-   Preferences → Add-ons reveals it; the Windows default is
-   `%APPDATA%\Blender Foundation\Blender\<version>\scripts\addons`.
-2. Enable **both** add-ons in Preferences: *Jedi Academy Import/Export
-   Tools* (`jediacademy`) and *JKA Animation Tools* (`jka_anim_tools`).
-3. Open the JKA N-panel and set the **AnimKit Dir** field (in the
-   *Segments (animation.cfg)* box) to the `lib` folder of the zip you
-   downloaded — the folder that *contains* `animkit\`.
-4. Done. Open your mod's folder tree and press **N** → **JKA**.
+1. **JKA Animation Tools** — the
+   [latest release zip](https://github.com/Jrbesse/jka-animator/releases)
+   (`jka-anim-tools-X.Y.Z.zip`, a standard add-on zip — the format
+   library `animkit` is bundled inside it). Requires Blender **4.1+**
+   (verified on 5.1 and 5.3.0).
+2. **Jedi Academy Import/Export Tools** (`jediacademy`, by mrwonko) — the
+   GLA/GLM import/export engine this add-on calls. It is **not bundled**
+   (its own license); install it once, separately, from
+   [mrwonko/Blender-Jedi-Academy-Tools](https://github.com/mrwonko/Blender-Jedi-Academy-Tools)
+   (tag `v2.1.0`).
+
+Then enable both in the Add-ons list, open your mod's folder tree and
+press **N** → **JKA**, and set the **Base Path** at the top — everything
+else derives from it.
 
 The full end-to-end walkthrough — first animation, every panel field, the
 check output explained, troubleshooting — is in
@@ -62,11 +66,11 @@ check output explained, troubleshooting — is in
                  │ calls its GLA import/export  │ imports at runtime
                  ▼ operators (installed addon)  ▼
    ┌────────────────────────────┐   ┌──────────────────────────────┐
-   │ jediacademy (GPL)          │   │ jka-animkit (MIT library)    │
+   │ jediacademy                │   │ jka-animkit (MIT library)    │
    │ mrwonko "Jedi Academy      │   │ the GLM/GLA + cfg format     │
    │ Import/Export Tools" —     │   │ ground truth: parse, check,  │
-   │ installed as an add-on,    │   │ diff, merge — shipped in the │
-   │ never copied into this repo│   │ release zip under lib/       │
+   │ its own license, installed │   │ diff, merge — bundled in the │
+   │ separately (not bundled)   │   │ add-on under lib/            │
    └────────────────────────────┘   └──────────────────────────────┘
 ```
 
@@ -83,10 +87,11 @@ test strategy.
 
 GitHub Releases, cut automatically from a `vX.Y.Z` tag: CI builds the zip
 from **pinned sources** (the private `jka-animkit` at the locked SHA in
-`packaging/animkit.lock`; the GPL dependency from its pinned upstream tag
-`v2.1.0`) and attaches it to the release. Current release:
-[v0.1.0](https://github.com/Jrbesse/jka-animator/releases/tag/v0.1.0)
-(2026-11-19). [Release pipeline details](docs/reference/release.md).
+`packaging/animkit.lock` — the only non-local input; `jediacademy` is a
+user-side install, never a CI input) and attaches it to the release.
+Current release:
+[v0.2.2](https://github.com/Jrbesse/jka-animator/releases/tag/v0.2.2)
+(2026-11-20). [Release pipeline details](docs/reference/release.md).
 
 ## Repo layout
 
@@ -102,18 +107,23 @@ from **pinned sources** (the private `jka-animkit` at the locked SHA in
 
 ## Roadmap
 
-- **Shipped (v0.1.0):** B1 add-on core + export gate · B2 cfg editor
+- **Shipped (v0.2.2):** B1 add-on core + export gate · B2 cfg editor
   (segments/events/saber) · B3 validation check + finger presets · B4
-  packaging + public release CI · the `.xsi` import pilot
-  (`BOTH_WALK_MINIGUN`, in-engine verified).
-- **Next (v0.2.0 candidate):** the 4 remaining `.xsi` segments + a panel
-  import face for them; the public documentation shipped here.
+  standard add-on zip packaging (no bundled GPL code) + public release CI
+  · the `.xsi` import pilot (`BOTH_WALK_MINIGUN`, in-engine verified) ·
+  the 2026-11-20 review fixes (one base path, labeled panel, icon/
+  operator compatibility on Blender 5.1/5.3, settings persistence,
+  reference-GLA plane alignment).
+- **Next (v0.3.0 candidate):** the 4 remaining `.xsi` segments + a panel
+  import face for them; a segment-import progress indicator for Cfg-mode
+  loads of big skeletons.
 - **v2:** GLM model work, engine-flavored preview.
 
 ## License
 
 - This add-on: **MIT** (see `LICENSE`).
-- `jka-animkit` (the format library, shipped in the zip): **MIT**.
-- `jediacademy` (the GLA importer/exporter the suite drives): **GPL** — it
-  runs as an installed add-on and its code is never copied into this repo
-  ([the boundary, in detail](docs/reference/architecture.md)).
+- `jka-animkit` (the format library, bundled in the zip): **MIT**.
+- `jediacademy` (the GLA importer/exporter the suite drives): its own
+  license — it is installed **separately** by the user from its upstream
+  repository and is never copied into this repo or bundled in the release
+  zip ([the boundary, in detail](docs/reference/architecture.md)).

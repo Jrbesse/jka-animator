@@ -21,10 +21,13 @@ def ensure_addon(addon_dir, op):
     if not addon_dir:
         raise JkaError(
             f"the jediacademy addon's {op!r} operator is not available in "
-            "this Blender. Install jediacademy.zip (User Preferences > "
-            "Add-ons > Install from File), or set the 'Add-on dir' field in "
-            "the JKA N-panel (CLI: --addon-dir) to the directory that "
-            "CONTAINS the 'jediacademy' package folder.")
+            "this Blender. jediacademy is a SEPARATE add-on (it is not "
+            "bundled with JKA Anim Tools): install it once from its own "
+            "repository (https://github.com/mrwonko/Blender-Jedi-Academy-"
+            "Tools, tag v2.1.0) via Edit > Preferences > Add-ons > "
+            "Install from Disk, then enable it — or set the 'Add-on dir' "
+            "field in the JKA N-panel (CLI: --addon-dir) to the directory "
+            "that CONTAINS the 'jediacademy' package folder.")
     if addon_dir not in sys.path:
         sys.path.insert(0, addon_dir)
     try:

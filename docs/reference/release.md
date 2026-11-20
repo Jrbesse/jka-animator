@@ -6,28 +6,33 @@ reproducible byte-for-byte from what CI checks out.
 
 ## The zip
 
-`packaging/build_release.py` assembles one folder:
+`packaging/build_release.py` assembles one standard add-on zip,
+`jka-anim-tools-<version>.zip`, installable via **Install from Disk…**:
 
 ```
-jka-anim-suite-<version>/
+jka-anim-tools-<version>.zip
   README-install.md        ← generated: install steps + the exact source stamps
-  addons/
-    jka_anim_tools/        ← this repo's addon core (MIT)
-    jediacademy/           ← the GPL dep, unzipped (skip __MACOSX)
-  lib/
-    animkit/               ← the format library (MIT, pure stdlib)
+  jka_anim_tools/          ← the add-on package at the ZIP ROOT
+    lib/animkit/           ← the format library (MIT, pure stdlib), bundled
 ```
 
-Plus a self-check: the zip must contain all three components + the README
-or the build fails.
+Self-checks (build fails on any): the zip must contain the README + the
+`jka_anim_tools/` package (with `lib/animkit`), and it must contain
+**no `jediacademy` file** (asserted by name scan — review item #1).
 
 ## Pinned sources
 
 | Source | Pin | How CI gets it |
 |--------|-----|----------------|
 | `Jrbesse/jka-animator` | the pushed ref (main or the tag) | `actions/checkout` |
-| `Jrbesse/jka-animkit` (private) | the full SHA in **`packaging/animkit.lock`** (currently `10f7af8d…`) | a **read-only deploy key** (repo secret `JKA_ANIMKIT_DEPLOY_KEY`, base64 single line) applied over ssh; `git fetch --depth 1 origin <sha>` |
-| `mrwonko/Blender-Jedi-Academy-Tools` (public; successor of the cagelight fork — the original `mrwonko/cagelight` repo is gone) | tag **`v2.1.0`** | `actions/checkout` at the tag; the plugin zip is built with upstream's own Makefile target (`make build/jediacademy.zip`) so CI ships exactly the tested plugin (the v0.1.0 fixture zip was verified byte-identical to that tag's plugin zip, 25/25 files). |
+| `Jrbesse/jka-animkit` (private) | the full SHA in **`packaging/animkit.lock`** | a **read-only deploy key** (repo secret `JKA_ANIMKIT_DEPLOY_KEY`, base64 single line) applied over ssh; `git fetch --depth 1 origin <sha>` |
+
+The `jediacademy` (mrwonko) add-on is a **user-side dependency, not a
+CI input**: CI never fetches or bundles it (its own license — review
+item #1). Users install it separately from
+`mrwonko/Blender-Jedi-Academy-Tools` at tag **`v2.1.0`**; the
+README-install, the panel's error message and the repo README all point
+there.
 
 **Bumping the animkit pin:** change `packaging/animkit.lock` to the new
 full SHA, **then** run the unit tests + a local release build at that SHA
@@ -44,14 +49,13 @@ local key material used during setup was deleted.
 - **`build.yml`** (reusable, `workflow_call`): input `version`; secret
   `JKA_ANIMKIT_DEPLOY_KEY` (declared in `on.workflow_call.secrets`);
   output `zip_path`. Steps: read the lock → write + validate the deploy
-  key → checkout the pinned animkit → checkout the pinned jediacademy tag
-  → `make` the plugin zip → **unit tests**
+  key → checkout the pinned animkit → **unit tests**
   (`python -m unittest -v tests.test_anims tests.test_checkop
   tests.test_fingers` with `JKA_ANIMKIT_DIR=vendor/jka-animkit`, then
   `python tests/test_paths.py` — that one is a standalone script, not a
   unittest module) → `build_release.py --version <v> --animkit-src
-  vendor/jka-animkit --jediacademy-zip vendor/jediacademy/build/jediacademy.zip`
-  → upload the zip as an artifact.
+  vendor/jka-animkit --out /tmp/dist` → upload the zip as an artifact
+  `jka-anim-tools-<v>`. (No jediacademy step — see "Pinned sources".)
 - **`ci.yml`**: push to `main` + manual dispatch → calls build with
   `version: ci`; the zip stays a workflow artifact for inspection.
 - **`release.yml`**: push of a tag `v*` (version = tag minus `v`) or
@@ -83,23 +87,20 @@ git tag -a vX.Y.Z -m "..." && git push origin vX.Y.Z
 
 ## Local flows
 
-**Dev build** (uses the gitignored jediacademy fixture, dev animkit
-clone):
+**Dev build** (uses the local dev animkit clone):
 
 ```
 cd ~/work/jka-animator && python3 packaging/build_release.py --version X.Y.Z
 ```
 
-**CI-equivalent local build** (fresh pinned clones — the verification
+**CI-equivalent local build** (fresh pinned clone — the verification
 recipe): clone `Jrbesse/jka-animkit` (full clone, then
-`git checkout <lock sha>` — GitHub won't shallow-fetch a bare SHA), clone
-`mrwonko/Blender-Jedi-Academy-Tools` @ `v2.1.0`, `make
-build/jediacademy.zip`, then
+`git checkout <lock sha>` — GitHub won't shallow-fetch a bare SHA), then
 
 ```
 python3 packaging/build_release.py --version X.Y.Z \
   --animkit-src <animkit-clone> \
-  --jediacademy-zip <clone>/build/jediacademy.zip
+  --out /tmp/dist
 ```
 
 Then run the shipped-zip register smoke

@@ -1,34 +1,35 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: MIT
-"""Build the Sheng-facing JKA animation suite distribution zip (workstream B4).
+"""Build the JKA animation tools distribution zip (workstream B4).
 
-Assembles ONE folder Sheng can drop into his Windows Blender:
+Ships ONE standard Blender add-on zip, installable with
+Edit > Preferences > Add-ons > Install from Disk (one click):
 
-    jka-anim-suite-<version>/
-      README-install.md        <- Windows Blender install instructions
-      addons/
-        jka_anim_tools/        <- our addon core (MIT)
-        jediacademy/           <- mrwonko/cagelight GPL dep (unzipped from fixture)
-      lib/
-        animkit/               <- the cfg/GLA format library (MIT, pure stdlib)
+    jka-anim-tools-<version>.zip
+      jka_anim_tools/            <- the add-on package, at the zip root (MIT)
+        __init__.py ...          <- bl_info add-on; N-panel + operators
+        lib/
+          animkit/               <- the cfg/GLA format library (MIT, bundled
+                                    so no 'AnimKit Dir' setup is needed)
+      README-install.md          <- install sheet (unzipped alongside)
+
+The GPL jediacademy (mrwonko/cagelight) add-on is NOT shipped in this zip
+(2026-11-20 review item #1): it is a separately installed dependency. The
+README links the user to the upstream repo (mrwonko/Blender-Jedi-Academy-
+Tools, tag v2.1.0) and this add-on invokes its operators after the user
+installs it — the 'Add-on dir' field remains as a fallback for loading it
+from a local folder.
 
 Usage:
-    python3 packaging/build_release.py [--version 0.1.0]
+    python3 packaging/build_release.py [--version 0.2.2]
                                        [--animkit-src ~/work/jka-animkit]
-                                       [--jediacademy-zip PATH]
                                        [--out dist]
 
---jediacademy-zip: the mrwonko/cagelight plugin zip. Defaults to the local
-dev fixture (fixtures/, gitignored). CI passes the zip built from the pinned
-upstream ref instead (mrwonko/Blender-Jedi-Academy-Tools tag v2.1.0 — the
-fixture was byte-identical to that tag's plugin zip).
-
-The 'animkit dir' the addon searches must be the folder that CONTAINS the
-'animkit' package — here that is <install>/lib. See the generated README.
+--animkit-src: the jka-animkit checkout; the pinned ref is recorded in
+packaging/animkit.lock and CI checks it out shallow at that SHA.
 """
 import argparse
 import os
-import re
 import shutil
 import subprocess
 import sys
@@ -36,11 +37,15 @@ import zipfile
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
+UPSTREAM_JEDACADEMY = ("https://github.com/mrwonko/Blender-Jedi-Academy-Tools"
+                       " (tag v2.1.0)")
+
 
 def git(*args):
     try:
         return subprocess.check_output(
-            ["git", "-C", REPO, *args], text=True, stderr=subprocess.DEVNULL).strip()
+            ["git", "-C", REPO, *args], text=True,
+            stderr=subprocess.DEVNULL).strip()
     except Exception:
         return ""
 
@@ -59,10 +64,9 @@ def copy_pkg(src, dst, skip=("__pycache__", ".pyc")):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--version", default="0.1.0")
-    ap.add_argument("--animkit-src", default=os.path.expanduser("~/work/jka-animkit"))
-    ap.add_argument("--jediacademy-zip", default=os.path.join(
-        REPO, "fixtures", "blender-addon", "jediacademy.zip"))
+    ap.add_argument("--version", default="0.2.2")
+    ap.add_argument("--animkit-src",
+                    default=os.path.expanduser("~/work/jka-animkit"))
     ap.add_argument("--out", default=os.path.join(REPO, "dist"))
     a = ap.parse_args()
 
@@ -79,138 +83,132 @@ def main():
     except Exception:
         pass
 
-    base = os.path.join(a.out, f"jka-anim-suite-{a.version}")
+    base = os.path.join(a.out, f"jka-anim-tools-{a.version}")
     if os.path.isdir(base):
         shutil.rmtree(base)
-    addons = os.path.join(base, "addons")
-    lib = os.path.join(base, "lib")
-    os.makedirs(addons)
-    os.makedirs(lib)
+    addon = os.path.join(base, "jka_anim_tools")
+    os.makedirs(os.path.join(addon, "lib"))
 
     commit = git("rev-parse", "--short", "HEAD")
-    print(f"jka-animator @ {commit}  jka-animkit @ {ak_commit}  version {a.version}")
+    print(f"jka-animator @ {commit}  jka-animkit @ {ak_commit}  "
+          f"version {a.version}")
 
-    # 1. the addon core
-    copy_pkg(os.path.join(REPO, "jka_anim_tools"), os.path.join(addons, "jka_anim_tools"))
+    # 1. the add-on core (package at the zip root — the standard install
+    #    format: Blender installs every bl_info package it finds in the
+    #    unzipped folder)
+    copy_pkg(os.path.join(REPO, "jka_anim_tools"), addon)
 
-    # 2. the GPL jediacademy dep (unzip, skip __MACOSX)
-    jz = os.path.abspath(a.jediacademy_zip)
-    if not os.path.isfile(jz):
-        sys.exit(f"jediacademy fixture missing: {jz} "
-                 f"(or pass --jediacademy-zip)")
-    with zipfile.ZipFile(jz) as z:
-        for info in z.infolist():
-            name = info.filename
-            if name.startswith("__MACOSX") or name.endswith("/"):
-                continue
-            parts = name.split("/")
-            if parts[0] != "jediacademy":
-                continue
-            target = os.path.join(addons, name)
-            os.makedirs(os.path.dirname(target), exist_ok=True)
-            with z.open(info) as src, open(target, "wb") as dst:
-                shutil.copyfileobj(src, dst)
+    # 2. the animkit library, bundled INSIDE the add-on (jka_anim_tools/lib)
+    #    so the 'AnimKit Dir' field is never needed — animkit_bridge
+    #    resolves <add-on>/lib before the env var / dev clone.
+    copy_pkg(ak_pkg, os.path.join(addon, "lib", "animkit"))
 
-    # 3. the animkit library
-    copy_pkg(ak_pkg, os.path.join(lib, "animkit"))
+    # 3. install README (unzipped alongside the package; Blender's
+    #    installer ignores non-add-on files at the zip root)
+    readme = f"""# JKA Animation Tools — install (Blender 4.1+)
 
-    # 4. install README
-    readme = f"""# JKA Animation Suite — install (Windows Blender)
+Version **{a.version}** · built from `jka-animator @ {commit}` +
+`jka-animkit @ {ak_commit}`.
 
-Version **{a.version}** · built from `jka-animator @ {commit}` + `jka-animkit @ {ak_commit}`.
-The Blender-addon side of the JKA (OpenJK / JKA: Enhanced) animation pipeline:
-import reference GLA → author a segment (incl. `.xsi` clips) → export GLA →
-validate against your character dir.
+The Blender-addon side of the JKA (OpenJK / JKA: Enhanced) animation
+pipeline: import reference GLA → author a segment → export GLA → validate
+against your character dir.
 
-## What's in this folder
+## 1. Install THIS add-on (one click)
 
-- `addons/jka_anim_tools/` — the addon (N-panel, operators). **MIT.**
-- `addons/jediacademy/` — the mrwonko/cagelight "Jedi Academy Import/Export
-  Tools" addon, a **hard dependency** (this addon calls its GLA
-  import/export operators — GPL, kept as a separate plugin, not vendored).
-- `lib/animkit/` — the JKA cfg/GLA format library the check/cfg layer imports
-  at runtime. **MIT, pure Python stdlib** (no numpy/scipy/pillow needed).
+Blender → Edit → Preferences → Add-ons → **Install from Disk…** → pick
+`jka-anim-tools-{a.version}.zip` (this zip). Then enable **JKA Animation
+Tools** in the Add-ons list.
 
-## Install (Windows Blender 5.x)
+No paths to configure: the cfg/GLA format library (`animkit`) is bundled
+inside the add-on (`jka_anim_tools/lib/`).
 
-1. **Copy the two addons** into your Blender add-ons directory:
-   - Windows default: `%APPDATA%\\Blender Foundation\\Blender\\<version>\\scripts\\addons`
-     (Blender → Edit → Preferences → Add-ons shows the exact location).
-   - Copy BOTH folders: `addons/jka_anim_tools` and `addons/jediacademy`.
+## 2. Install the separate dependency (GLA import/export)
 
-2. **Point the addon at animkit.** In the JKA N-panel (3D view → **N** →
-   **JKA** tab), in the *Segments (animation.cfg)* box, set the
-   **AnimKit Dir** field to:
+This add-on calls the **Jedi Academy Import/Export Tools** add-on
+(`jediacademy`, by mrwonko) for the actual .gla/.glm import/export. It is
+**not** bundled with this zip — install it once, separately, from its own
+repository:
 
-       <this folder>\\lib
+    {UPSTREAM_JEDACADEMY}
 
-   ...the folder that *contains* `animkit\\`. (Alternatively set the
-   environment variable `JKA_ANIMKIT_DIR` to that same `lib` folder.)
+Download the release/zip from that repo, then in Blender:
+Edit → Preferences → Add-ons → **Install from Disk…** → pick that zip →
+enable **Jedi Academy Import/Export Tools** (`jediacademy`).
 
-3. **Enable both add-ons** in Blender → Edit → Preferences → Add-ons:
-   - `Jedi Academy Import/Export Tools` (`jediacademy`)
-   - `JKA Animation Tools` (`jka_anim_tools`)
-   The JKA addon requires jediacademy to be enabled (it loads it on demand).
+If you keep the unzipped add-on folder somewhere and it is not installed
+in Preferences, you can point this add-on's **Add-on Dir** field (bottom
+of the JKA panel) at the folder that CONTAINS the `jediacademy` package —
+it will be loaded on demand.
 
-4. **Open your mod's base tree** (a folder containing
-   `models/players/_humanoid/_humanoid.gla` + `animation.cfg`) and use the
-   N-panel (press **N** in the 3D view → **JKA** tab, the last tab).
+## 3. Use it
 
-## Quick start (the workflow)
+Open your mod's base tree (the folder that contains
+`models/players/_humanoid/_humanoid.gla` + `animation.cfg`), press **N**
+in the 3D view → **JKA** tab, and set the **one Base Path** field at the
+top — everything (reference GLA, output, segments, check) derives from it.
 
-- **Load reference**: pick `_humanoid/_humanoid.gla` + a frame range.
-- **Author**: key a segment (or import an `.xsi` clip), use the finger
-  presets (FIST / OPEN / GRASP) for hand poses.
-- **Export GLA**: writes the re-authored segment into the base tree.
-- **Check**: validates the character dir (GLA + cfg) and prints errors /
-  warnings; a clean check is the gate before in-engine play.
+- **Load reference**: `_humanoid/_humanoid.gla` + a frame range (Range mode
+  is fast; do not import the whole file).
+- **Author**: key a segment, use the finger presets (Grasp / Fist / Open)
+  for hand poses.
+- **Export GLA**: writes the authored segment into the base tree.
+- **Check**: validates the character dir (GLA + cfgs + skin); a clean
+  check is the gate before in-engine play.
 
-## Notes
-
-- Blender 5.3 is the tested target; the panel handles the 4.x→5.3 enum/icon
-  API differences.
-- This is animation-side only: the finished GLM is input; modeling/weighting
-  are out of scope.
+Your panel settings are saved automatically and restored the next time
+Blender starts.
 
 ## Licensing
 
 - `jka_anim_tools/` — MIT (see the repo LICENSE).
-- `lib/animkit/` — MIT.
-- `addons/jediacademy/` — GPL (mrwonko/cagelight). It is a separate plugin
-  this addon invokes; per the GPL/MIT boundary we never copy its code.
+- `jka_anim_tools/lib/animkit/` — MIT.
+- `jediacademy` (separate install) — its own license, per its upstream
+  repository; intentionally NOT redistributed here.
 """
     with open(os.path.join(base, "README-install.md"), "w") as f:
         f.write(readme)
 
-    # 5. zip it
+    # 4. zip it (package at the zip root)
     os.makedirs(a.out, exist_ok=True)
-    zpath = os.path.join(a.out, f"jka-anim-suite-{a.version}.zip")
+    zpath = os.path.join(a.out, f"jka-anim-tools-{a.version}.zip")
     if os.path.isfile(zpath):
         os.remove(zpath)
     with zipfile.ZipFile(zpath, "w", zipfile.ZIP_DEFLATED) as z:
+        # zip relative to the STAGING dir so the add-on package sits at
+        # the zip root (the standard install-from-disk layout)
         for root, dirs, files in os.walk(base):
             dirs[:] = [d for d in dirs if d != "__pycache__"]
             for f in files:
                 if f.endswith(".pyc"):
                     continue
                 full = os.path.join(root, f)
-                z.write(full, os.path.relpath(full, a.out))
+                z.write(full, os.path.relpath(full, base))
 
     size = os.path.getsize(zpath)
     print(f"\nOK: {zpath}  ({size/1024:.0f} KB)")
-    # sanity: verify the zip contains the 3 components + readme
+    # sanity: the zip must contain the add-on + bundled animkit + readme,
+    # and must NOT contain any jediacademy file (the GPL dep ships
+    # separately — review item #1)
     with zipfile.ZipFile(zpath) as z:
         names = z.namelist()
         checks = {
-            "add-on core": any(n.endswith("jka_anim_tools/__init__.py") for n in names),
-            "jediacademy dep": any(n.endswith("jediacademy/__init__.py") for n in names),
-            "animkit lib": any(n.endswith("lib/animkit/__init__.py") for n in names),
-            "readme": any(n.endswith("README-install.md") for n in names),
+            "add-on core": "jka_anim_tools/__init__.py" in names,
+            "bundled animkit": "jka_anim_tools/lib/animkit/__init__.py"
+                               in names,
+            "readme": "jka_anim_tools/../README-install.md" in names
+                      or any(n == "README-install.md" for n in names),
         }
         for k, ok in checks.items():
             print(f"  [{'ok' if ok else 'MISSING'}] {k}")
         if not all(checks.values()):
             sys.exit("distribution incomplete")
+        leaked = [n for n in names if "jediacademy" in n.lower()
+                  or "wonko" in n.lower()]
+        if leaked:
+            sys.exit(f"GPL dependency leaked into the distribution: "
+                     f"{leaked[:5]}")
+        print("  [ok] no jediacademy/GPL content in the zip")
 
 
 if __name__ == "__main__":

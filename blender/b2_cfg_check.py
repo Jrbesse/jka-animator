@@ -78,8 +78,8 @@ def main():
 
     jka_anim_tools.register()
     p = bpy.context.scene.jka_anim
-    p.cfg_basepath = base
-    p.cfg_character = character
+    p.basepath = base
+    p.character = character
     p.animkit_dir = animkit_dir
     p.addon_dir = addon_dir
 

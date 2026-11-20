@@ -18,6 +18,14 @@ data-block fallback would grab the IK controls). So we:
   2. rename IK_Rig's data-block (if it squats on the name)
   3. import the reference GLA (a fresh skeleton_root is created)
   4. rename the fresh one to reference_humanoid
+  5. re-align the reference onto the rig's mirror armature (see
+     ``_align_reference_to_rig``) — the importer parents the fresh
+     armature to the scene's ``scene_root`` with an identity local
+     transform, so a scene_root carrying a model-convention rotation
+     (common for replacement models authored in a different up-axis
+     convention) drags the stock reference skeleton off-plane while the
+     model's own skeleton stays upright (Sheng review #7/#9, 2026-11-20:
+     the reference lay flat on the ground 90 degrees from the model).
 
 Nothing is saved; the .blend on disk is never touched. Verified S2
 (2026-11-17): matched-session export byte-identical to a non-matched one.
@@ -25,6 +33,7 @@ Nothing is saved; the .blend on disk is never touched. Verified S2
 import os
 
 import bpy
+from mathutils import Matrix
 
 from .addon_bridge import ensure_addon
 from .common import MIRROR, RIG_NAME, REF_NAME, VALID_MODES, MODE_TO_OP, JkaError
@@ -103,7 +112,43 @@ def load_reference(gla, basepath="", mode="range", start=0, frames=240,
         raise JkaError("import did not create a 'skeleton_root' — check "
                        "the import output above")
     fresh.name = REF_NAME
+    _align_reference_to_rig(fresh)
     print(f"jka_anim_tools: reference imported as '{REF_NAME}' "
           f"({len(fresh.data.bones)} bones); frame range "
           f"{bpy.context.scene.frame_start}..{bpy.context.scene.frame_end}")
     return fresh
+
+
+def _align_reference_to_rig(ref):
+    """Give the reference the RIG MIRROR's world transform.
+
+    The importer created the reference under ``scene_root`` with an
+    identity local transform — i.e. its world transform IS scene_root's.
+    For a replacement model whose package bakes a corrective rotation
+    into scene_root (authored in a different up-axis convention), that
+    rotates the stock reference skeleton off-plane while the model's
+    skeleton (whose bone space is pre-rotated to compensate) stays
+    upright — the "reference not on the same plane as the .GLM" bug
+    (review #7/#9).
+
+    The model is bound to the mirror skeleton, so the reference must
+    occupy the mirror's world transform (scale included) in EVERY case:
+
+    * standard scenes (scene_root = identity + 0.1 scale, mirror local
+      identity): the mirror's world transform already equals
+      scene_root's — nothing moves and the matched export stays
+      byte-identical (the reference is never part of the export);
+    * rotated-convention scenes: the reference stands upright with the
+      model instead of lying flat.
+
+    The reference's local is identity (the importer's creation), so
+    reparenting with an IDENTITY parent inverse makes its world
+    transform exactly the mirror's, and keeps them in lockstep if the
+    user later moves the rig object. (Do NOT cancel the mirror's world
+    via matrix_parent_inverse — that strips the 0.1 engine scale and
+    leaves the reference 10x oversized.)"""
+    mirror = bpy.data.objects.get(RIG_NAME)
+    if mirror is None:
+        return
+    ref.matrix_parent_inverse = Matrix.Identity(4)
+    ref.parent = mirror

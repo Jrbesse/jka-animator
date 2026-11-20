@@ -9,7 +9,10 @@ jediacademy bridge). bpy-free: importable from headless tests.
 Search order for the directory that CONTAINS the ``animkit`` package:
 1. an explicit dir (the panel's 'animkit dir' field / CLI flag),
 2. the ``JKA_ANIMKIT_DIR`` environment variable,
-3. ``~/work/jka-animkit`` (the dev-machine clone).
+3. the COPY BUNDLED inside the installed add-on (``jka_anim_tools/lib``) —
+   the distribution ships animkit inside the package, so a standard
+   install needs no configuration,
+4. ``~/work/jka-animkit`` (the dev-machine clone).
 """
 import importlib
 import os
@@ -19,9 +22,11 @@ from .common import JkaError
 
 _LOADED_FROM = None  # the directory the current sys.modules['animkit'] came from
 
+# The release bundles animkit inside the add-on package: <this package>/lib
+_BUNDLED = os.path.join(os.path.dirname(os.path.abspath(__file__)), "lib")
 _DEV_DEFAULT = os.path.expanduser("~/work/jka-animkit")
 
-_CANDIDATE_ORDER = ("explicit", "JKA_ANIMKIT_DIR", "dev clone")
+_CANDIDATE_ORDER = ("explicit", "JKA_ANIMKIT_DIR", "bundled", "dev clone")
 
 
 def _is_animkit_dir(d):
@@ -31,7 +36,7 @@ def _is_animkit_dir(d):
 def resolve_dir(animkit_dir=""):
     """First usable directory (containing the 'animkit' package), or ''."""
     env = os.environ.get("JKA_ANIMKIT_DIR", "")
-    for d in (animkit_dir, env, _DEV_DEFAULT):
+    for d in (animkit_dir, env, _BUNDLED, _DEV_DEFAULT):
         if _is_animkit_dir(d):
             return d
     return ""
@@ -48,12 +53,15 @@ def get_animkit(animkit_dir=""):
         searched = [
             f"the 'animkit dir' field ({animkit_dir!r})",
             f"$JKA_ANIMKIT_DIR ({os.environ.get('JKA_ANIMKIT_DIR', '')!r})",
+            f"the copy bundled with the add-on ({_BUNDLED})",
             f"the dev clone ({_DEV_DEFAULT})",
         ]
         raise JkaError(
-            "animkit (the JKA cfg/GLA format library) was not found — set "
-            "the 'animkit dir' field to the folder that CONTAINS the "
-            f"'animkit' package. Searched: " + "; ".join(searched) + ".")
+            "animkit (the JKA cfg/GLA format library) was not found — the "
+            "shipped add-on bundles it under jka_anim_tools/lib; if this "
+            "copy is broken, point the 'animkit dir' field at the folder "
+            "that CONTAINS the 'animkit' package. Searched: "
+            + "; ".join(searched) + ".")
     if _LOADED_FROM == d and "animkit" in sys.modules:
         mod = sys.modules["animkit"]
     else:

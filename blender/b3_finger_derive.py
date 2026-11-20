@@ -96,7 +96,7 @@ def main():
     p = bpy.context.scene.jka_anim
     p.ref_gla = os.path.join(base, "models", "players", skeleton,
                              f"{skeleton}.gla")
-    p.ref_basepath = base
+    p.basepath = base
     p.ref_mode = "RANGE"
     p.ref_start = first
     p.ref_frames = 1

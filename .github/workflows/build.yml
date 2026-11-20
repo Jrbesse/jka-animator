@@ -1,23 +1,24 @@
 # SPDX-License-Identifier: MIT
-# Reusable build of the JKA animation suite distribution zip.
+# Reusable build of the JKA animation tools distribution zip.
 #
 # Sources (none committed to this repo — sanitize policy, decision #3):
 #   * jka-animkit   — private, same owner; pinned via packaging/animkit.lock.
 #     The default GITHUB_TOKEN cannot read other repos, so the workflow uses
 #     a read-only deploy key (repo secret JKA_ANIMKIT_DEPLOY_KEY) and a
 #     shallow fetch of the pinned full SHA.
-#   * jediacademy   — mrwonko/Blender-Jedi-Academy-Tools (the public
-#     successor of the cagelight fork), pinned to tag v2.1.0. The v0.1.0
-#     fixture zip was verified byte-identical to that tag's plugin zip
-#     (all 25 files, 2026-11-19); we build it with upstream's own Makefile
-#     target so CI ships exactly the tested plugin.
+#
+# The GPL jediacademy (mrwonko) add-on is deliberately NOT fetched or
+# bundled (2026-11-20 review item #1): it is a separately installed
+# dependency that users download from its own repository
+# (mrwonko/Blender-Jedi-Academy-Tools, tag v2.1.0). The built zip must
+# contain no jediacademy files (build_release.py asserts this).
 name: Build suite
 
 on:
   workflow_call:
     inputs:
       version:
-        description: Version stamped into the zip (e.g. 0.1.0)
+        description: Version stamped into the zip (e.g. 0.2.2)
         required: true
         type: string
     secrets:
@@ -70,20 +71,9 @@ jobs:
           git -C vendor/jka-animkit fetch --depth 1 origin "${{ steps.ak.outputs.ref }}"
           git -C vendor/jka-animkit checkout "${{ steps.ak.outputs.ref }}"
 
-      - name: Checkout jediacademy dep (pinned public tag)
-        uses: actions/checkout@v4
-        with:
-          repository: mrwonko/Blender-Jedi-Academy-Tools
-          ref: v2.1.0
-          path: vendor/jediacademy
-          fetch-depth: 1
-
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-
-      - name: Build the jediacademy plugin zip (upstream Makefile target)
-        run: make -C vendor/jediacademy build/jediacademy.zip
 
       # test_paths.py is a standalone script (sys.exit style), not a unittest
       # module — run it separately; the rest is plain unittest. Fixtures ride
@@ -100,14 +90,13 @@ jobs:
           python packaging/build_release.py \
             --version "${{ inputs.version }}" \
             --animkit-src vendor/jka-animkit \
-            --jediacademy-zip vendor/jediacademy/build/jediacademy.zip \
             --out /tmp/dist
 
       - id: zip
-        run: echo "path=/tmp/dist/jka-anim-suite-${{ inputs.version }}.zip" >> "$GITHUB_OUTPUT"
+        run: echo "path=/tmp/dist/jka-anim-tools-${{ inputs.version }}.zip" >> "$GITHUB_OUTPUT"
 
       - uses: actions/upload-artifact@v4
         with:
-          name: jka-anim-suite-${{ inputs.version }}
-          path: /tmp/dist/jka-anim-suite-${{ inputs.version }}.zip
+          name: jka-anim-tools-${{ inputs.version }}
+          path: /tmp/dist/jka-anim-tools-${{ inputs.version }}.zip
           if-no-files-found: error

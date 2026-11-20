@@ -3,20 +3,35 @@
 
 Properties live on bpy.types.Scene so they persist while the file is open
 and survive operator invocations; the headless scripts use the same
-values via the CLI.
+values via the CLI. Top-level fields are also mirrored to a user-config
+JSON across Blender restarts (persist.py, review item #10).
+
+ONE base path (review item #4): ``basepath`` (the mod folder containing
+``models/players/``) + ``character`` are the only location fields; the
+reference GLA, the export output and the in-GLA path are DERIVED from
+them (paths.py) and every field that used to ask for a folder again is
+gone.
+
+Labels (review item #3): every property row carries an explicit text
+label — nothing relies on hover tooltips.
+
+Icons (review item #5): icons validate per-Blender-version enum lists;
+``_op`` drops the icon instead of crashing the panel draw when a value
+is missing on the user's Blender (the 5.1 crash was icon='BONE').
 
 Sections
 --------
-B1:  Reference (matching) / Rig / Export GLA
-B2:  Segments (animation.cfg) / Events (animevents.cfg) /
-     Saber (saberanims.cfg) — driven by the cfgops.py operators over the
-     shared animkit cfg layer (decision #12).
-B3:  Check (animkit-check over the character/skeleton dir) /
-     Fingers (grasp / fist / open presets) / Results.
+Base:  Base Path + Character (the only location fields)
+B1:    Reference (matching) / Rig / Export GLA
+B2:    Segments (animation.cfg) / Events (animevents.cfg) /
+       Saber (saberanims.cfg) — cfgops.py operators over the
+       bundled animkit cfg layer (decision #12)
+B3:    Check (animkit-check) / Fingers (presets) / Results
+Deps:  jediacademy Add-on Dir + animkit override (rarely needed)
 """
 import bpy
 
-from . import animkit_bridge, anims
+from . import animkit_bridge, anims, persist
 
 # File-browser subtypes: bpy.props.FileType was removed in Blender 5.3 —
 # the raw subtype identifiers survive (in 4.x FileType.ANY/.DIRECTORY are
@@ -32,9 +47,13 @@ except AttributeError:
 MODES = (
     ("RANGE", "Range", "start..start+frames-1 in one action (fast)"),
     ("CFG", "Cfg", "one NLA strip per animation.cfg segment (slow on big skeletons)"),
-    ("ALL", "All", "every frame in one action (slow)"),
+    ("ALL", "All", "every frame in one action (slow — do not use on stock files)"),
     ("NONE", "None", "geometry only, no animation"),
 )
+
+# How many segment rows to draw at most (stock _humanoid has 1668 —
+# drawing them all is what made the panel sluggish, review item #6).
+SEG_ROW_CAP = 50
 
 # The editable event types (NPC_stats.cpp switch cases) and the per-type
 # data-field help the panel shows under the Data field.
@@ -42,6 +61,43 @@ EVT_TYPES = tuple(
     (t, t.replace("AEV_", ""), anims.data_help(t))
     for t in anims.EDITABLE_ETYPES
 )
+
+
+# The only kwargs UILayout.operator accepts on every supported Blender —
+# everything else is an OPERATOR PROPERTY and must be set on the returned
+# op object (5.3 rejects property kwargs outright; older versions happened
+# to forward them, so this split is the portable form).
+_UI_KWARG_NAMES = ("text_ctxt", "translate", "emboss", "depress",
+                   "icon_value", "search_weight")
+
+
+def _op(layout, op_idname, icon=None, text=None, **kw):
+    """``layout.operator`` that is safe across Blender 4.x/5.x.
+
+    Two crash classes this kills (review item #5):
+
+    * an icon enum value missing on the RUNNING Blender raises TypeError
+      at draw time (the 5.1 ``icon='BONE'`` crash) — a bad icon is
+      dropped and the button stays functional;
+    * operator PROPERTIES (``preset='GRASP'`` etc.) passed as kwargs:
+      5.3 raises ``invalid keyword argument(s)``. Properties are set on
+      the returned op object instead, which every version accepts.
+    """
+    props = {k: v for k, v in kw.items() if k not in _UI_KWARG_NAMES}
+    uikw = {k: v for k, v in kw.items() if k in _UI_KWARG_NAMES}
+
+    def _finish(op):
+        for k, v in props.items():
+            setattr(op, k, v)
+        return op
+
+    if icon is not None:
+        try:
+            return _finish(layout.operator(op_idname, text=text,
+                                           icon=icon, **uikw))
+        except TypeError:
+            pass  # icon missing on this Blender — retry without it
+    return _finish(layout.operator(op_idname, text=text, **uikw))
 
 
 def _evt_segment_items(prop, context):
@@ -63,14 +119,24 @@ def _saber_preset_items(prop, context):
     if hasattr(prop, "scene"):
         context = prop
     p = context.scene.jka_anim
-    if not p.cfg_basepath:
-        return [("", "(set the cfg base path)", "")]
+    if not p.basepath:
+        return [("", "(set the base path first)", "")]
     try:
         ak = animkit_bridge.get_animkit(p.animkit_dir)
-        presets = anims.saber_presets(ak, p.cfg_basepath, p.saber_cfg)
+        presets = anims.saber_presets(ak, p.basepath, p.saber_cfg)
         return [(str(i), pr.label, "") for i, pr in enumerate(presets)]
     except Exception:
         return [("", "(animkit unavailable)", "")]
+
+
+def _matched_segments(p):
+    """Indices of the segment rows matching the filter (case-insensitive
+    substring; empty filter = all). The list can be 1600+ rows — this is
+    the only per-redraw work, and it is a plain string scan."""
+    f = p.seg_filter.strip().lower()
+    if not f:
+        return list(range(len(p.segments)))
+    return [i for i, s in enumerate(p.segments) if f in s.name.lower()]
 
 
 class JkaAnim_Segment(bpy.types.PropertyGroup):
@@ -103,13 +169,22 @@ class JkaAnim_Result(bpy.types.PropertyGroup):
 
 
 class JkaAnim_PropGroup(bpy.types.PropertyGroup):
+    # --- the ONE location (persisted) ---
+    basepath: bpy.props.StringProperty(
+        name="Base Path", subtype=FILE_DIR,
+        description="The mod folder that CONTAINS models/players — set it "
+                    "once; the reference GLA, output and cfgs all derive "
+                    "from it")
+    character: bpy.props.StringProperty(
+        name="Character", default="_humanoid",
+        description="The folder under models/players you are working on "
+                    "(a real character or _humanoid)")
     # --- reference (matching) ---
     ref_gla: bpy.props.StringProperty(
         name="Reference GLA", subtype=FILE_ANY,
-        description="Reference .gla to import for matching (absolute path)")
-    ref_basepath: bpy.props.StringProperty(
-        name="Base Path", subtype=FILE_DIR,
-        description="Mod folder containing models/... (cfg mode resolves the .cfg against it)")
+        description="The reference .gla to import for matching. Leave "
+                    "empty to use <base>/models/players/<character>/ "
+                    "<character>.gla (or the stock _humanoid GLA)")
     ref_mode: bpy.props.EnumProperty(
         name="Import mode", items=MODES, default="RANGE")
     ref_start: bpy.props.IntProperty(
@@ -119,18 +194,11 @@ class JkaAnim_PropGroup(bpy.types.PropertyGroup):
         name="Frames", default=240, min=1,
         description="Range mode: frame count")
     # --- export ---
-    exp_basepath: bpy.props.StringProperty(
-        name="Base Path", subtype=FILE_DIR,
-        description="Your mod folder (the folder that contains models/...)")
-    exp_filepath: bpy.props.StringProperty(
-        name="Output File", subtype=FILE_ANY,
-        description="Output .gla — absolute path, INSIDE the Base Path")
-    exp_glapath: bpy.props.StringProperty(
-        name="GLA Path",
-        description="Base-relative in-GLA path, e.g. models/players/mychar/mychar.gla")
     exp_ref: bpy.props.StringProperty(
-        name="Reference", default="models/players/_humanoid/_humanoid.gla",
-        description="Base-relative reference GLA — copies bone indices")
+        name="Reference GLA (in-GLA)",
+        default="models/players/_humanoid/_humanoid.gla",
+        description="Base-relative reference GLA — copies bone indices. "
+                    "The stock _humanoid is right for character work")
     exp_custom_frames: bpy.props.BoolProperty(
         name="Custom frame range", default=False,
         description="Off: use the scene's current frame range")
@@ -138,29 +206,27 @@ class JkaAnim_PropGroup(bpy.types.PropertyGroup):
         name="Frame Start", default=0, min=0)
     exp_frame_end: bpy.props.IntProperty(
         name="Frame End", default=239, min=0)
-    # --- addon bridge ---
+    # --- dependencies (rarely needed; persisted) ---
     addon_dir: bpy.props.StringProperty(
-        name="Add-on Dir", subtype=FILE_DIR,
-        description="Only needed if jediacademy is not installed: the "
-                    "directory that CONTAINS the 'jediacademy' package folder")
-    # --- B2: cfg editor (segments / events / saber) ---
+        name="Jedi Academy Add-on Dir", subtype=FILE_DIR,
+        description="Only when the separately-installed jediacademy "
+                    "add-on is NOT enabled in Preferences: the directory "
+                    "that CONTAINS the 'jediacademy' package folder")
     animkit_dir: bpy.props.StringProperty(
-        name="AnimKit Dir", subtype=FILE_DIR,
-        description="The directory that CONTAINS the 'animkit' package "
-                    "(the JKA cfg/GLA format library); empty = $JKA_ANIMKIT_DIR "
-                    "or the dev clone")
-    cfg_basepath: bpy.props.StringProperty(
-        name="Cfg Base Path", subtype=FILE_DIR,
-        description="Mod folder containing models/players/<character>/...")
-    cfg_character: bpy.props.StringProperty(
-        name="Character",
-        description="Character folder under models/players, e.g. assassin_droid")
+        name="AnimKit Dir (override)", subtype=FILE_DIR,
+        description="Leave empty: the copy bundled with this add-on is "
+                    "used. Override only to test a different animkit")
+    # --- B2: cfg editor (segments / events / saber) ---
     saber_cfg: bpy.props.StringProperty(
         name="Saber cfg (override)", subtype=FILE_ANY,
         description="Explicit saberanims.cfg path; empty = "
                     "<base>/ext_data/saberanims.cfg")
     segments: bpy.props.CollectionProperty(type=JkaAnim_Segment)
     seg_selected: bpy.props.IntProperty(name="Selected segment")
+    seg_filter: bpy.props.StringProperty(
+        name="Filter",
+        description="Substring filter for the segment list (e.g. "
+                    "BOTH_SPRINT)")
     seg_jump_create: bpy.props.BoolProperty(
         name="Create action/strip if missing", default=True,
         description="Jump: also create the segment's action + NLA strip "
@@ -205,122 +271,148 @@ class JKA_PT_Main(bpy.types.Panel):
 
     def draw(self, context):
         p = context.scene.jka_anim
+        # first-draw settings restore (persist.py safety net)
+        persist.ensure_restored(context.scene)
         layout = self.layout
 
         box = layout.box()
+        box.label(text="Base (set once — everything derives from it)",
+                  icon='FILE_FOLDER')
+        box.prop(p, "basepath", text="Base Path")
+        box.prop(p, "character", text="Character")
+
+        box = layout.box()
         box.label(text="Reference (matching)")
-        row = box.row(align=True)
-        row.prop(p, "ref_gla", text="")
-        row.prop(p, "ref_mode", text="")
-        box.prop(p, "ref_basepath", text="")
+        box.prop(p, "ref_gla", text="Reference GLA")
+        box.prop(p, "ref_mode", text="Mode")
         if p.ref_mode == "RANGE":
             row = box.row(align=True)
-            row.prop(p, "ref_start")
-            row.prop(p, "ref_frames")
-        box.operator("jka_anim.load_reference", icon='IMPORT')
+            row.prop(p, "ref_start", text="Start")
+            row.prop(p, "ref_frames", text="Frames")
+        _op(box, "jka_anim.load_reference", icon='IMPORT',
+            text="Load reference GLA")
+        box.label(text="the reference is a SEPARATE armature — scrub it "
+                    "and pose the rig to match", icon='INFO')
 
         box = layout.box()
         box.label(text="Rig")
-        box.operator("jka_anim.prep_rig", icon='MODIFIER')
+        _op(box, "jka_anim.prep_rig", icon='MODIFIER',
+            text="Prep rig for export")
+        box.label(text="strips IK constraints + the saved pose (in "
+                    "memory); do this first — a freshly opened rig "
+                    "displays collapsed until you do", icon='INFO')
 
         box = layout.box()
         box.label(text="Export GLA")
-        box.prop(p, "exp_basepath", text="")
-        box.prop(p, "exp_filepath", text="")
-        box.prop(p, "exp_glapath", text="")
-        box.prop(p, "exp_ref", text="")
-        box.prop(p, "exp_custom_frames")
+        if p.basepath and p.character:
+            box.label(text=f"output: {p.basepath}/models/players/"
+                          f"{p.character}/{p.character}.gla",
+                     icon='FILE_TEXT')
+        else:
+            box.label(text="output derives from Base Path + Character",
+                     icon='FILE_TEXT')
+        box.prop(p, "exp_ref", text="Ref GLA (in-GLA path)")
+        box.prop(p, "exp_custom_frames", text="Custom frame range")
         if p.exp_custom_frames:
             row = box.row(align=True)
-            row.prop(p, "exp_frame_start")
-            row.prop(p, "exp_frame_end")
-        box.operator("jka_anim.export_gla", icon='EXPORT')
+            row.prop(p, "exp_frame_start", text="Start")
+            row.prop(p, "exp_frame_end", text="End")
+        _op(box, "jka_anim.export_gla", icon='EXPORT', text="Export GLA")
 
         # --- B2: the cfg editor ---
         box = layout.box()
         box.label(text="Segments (animation.cfg)")
-        box.prop(p, "cfg_basepath", text="")
-        box.prop(p, "cfg_character", text="")
-        box.prop(p, "animkit_dir", text="")
-        box.operator("jka_anim.segments_load", icon='FILE_REFRESH')
-        for i, s in enumerate(p.segments):
+        if p.segments:
+            box.prop(p, "seg_filter", text="Filter")
+        for i in _matched_segments(p)[:SEG_ROW_CAP]:
+            s = p.segments[i]
             icon = ("MODIFIER_OFF" if s.drift
                     else "ACTION" if s.has_action else "NONE")
             box.prop(p, "seg_selected",
-                     text=f"{s.name}  {s.first_frame}.."
-                          f"{s.first_frame + s.num_frames - 1}",
+                     text=f"{s.name}  {s.first_frame}..",
                      index=i, icon=icon)
+        matched = len(_matched_segments(p))
+        if p.segments and matched > SEG_ROW_CAP:
+            box.label(text=f"… {matched - SEG_ROW_CAP} more match the "
+                          "filter", icon='NONE')
         if p.segments:
             sel = p.segments[min(max(p.seg_selected, 0),
                                  len(p.segments) - 1)]
             row = box.row(align=True)
             row.label(text=f"loop {sel.loop_frames}   fps {sel.fps}")
-            row.operator("jka_anim.segment_jump", icon='BACK')
-            box.prop(p, "seg_jump_create")
-            box.operator("jka_anim.segment_apply", icon='CHECKMARK')
+            _op(row, "jka_anim.segment_jump", icon='BACK',
+                text="Jump to segment")
+            box.prop(p, "seg_jump_create", text="Create action/strip if missing")
+            _op(box, "jka_anim.segment_apply", icon='CHECKMARK',
+                text="Apply to action")
             if sel.drift:
                 box.label(text="* action differs from the cfg", icon='ERROR')
             box.label(text="Add segment:")
             row = box.row(align=True)
-            row.prop(p, "seg_new_name", text="")
-            row.operator("jka_anim.segment_add", icon='ADD')
+            row.prop(p, "seg_new_name", text="Name")
+            _op(row, "jka_anim.segment_add", icon='ADD', text="Add")
             row = box.row(align=True)
-            row.prop(p, "seg_new_first")
-            row.prop(p, "seg_new_num")
+            row.prop(p, "seg_new_first", text="First frame")
+            row.prop(p, "seg_new_num", text="Frames")
             row = box.row(align=True)
-            row.prop(p, "seg_new_loop")
-            row.prop(p, "seg_new_fps")
+            row.prop(p, "seg_new_loop", text="Loop point")
+            row.prop(p, "seg_new_fps", text="FPS")
 
         box = layout.box()
         box.label(text="Events (animevents.cfg)")
-        row = box.row(align=True)
-        row.prop(p, "evt_block", text="")
-        box.prop(p, "evt_segment", text="")
-        box.operator("jka_anim.events_load", icon='FILE_REFRESH')
+        box.prop(p, "evt_block", text="Block")
+        box.prop(p, "evt_segment", text="Segment")
+        _op(box, "jka_anim.events_load", icon='FILE_REFRESH',
+            text="Load events")
         for i, e in enumerate(p.events):
             box.prop(p, "evt_selected",
                      text=f"#{e.key_frame} {e.etype.replace('AEV_', '')} "
                           f"{e.data}",
                      index=i)
         if p.events:
-            box.operator("jka_anim.event_remove", icon='X')
+            _op(box, "jka_anim.event_remove", icon='X', text="Remove event")
         box.label(text="Add event:")
         row = box.row(align=True)
-        row.prop(p, "evt_new_type", text="")
-        row.prop(p, "evt_new_key")
-        box.prop(p, "evt_new_data", text="")
+        row.prop(p, "evt_new_type", text="Type")
+        row.prop(p, "evt_new_key", text="Key frame")
+        box.prop(p, "evt_new_data", text="Data")
         box.label(text=anims.data_help(p.evt_new_type))
-        box.operator("jka_anim.event_add", icon='ADD')
-        box.operator("jka_anim.events_save", icon='FILE_TICK')
+        _op(box, "jka_anim.event_add", icon='ADD', text="Add event")
+        _op(box, "jka_anim.events_save", icon='FILE_TICK', text="Save events")
 
         box = layout.box()
         box.label(text="Saber (saberanims.cfg)")
-        box.prop(p, "saber_cfg", text="")
-        box.operator("jka_anim.saber_validate", icon='CHECKMARK')
-        box.prop(p, "saber_preset", text="")
-        box.operator("jka_anim.saber_preset_apply", icon='PLAY')
+        box.prop(p, "saber_cfg", text="Saber cfg (override)")
+        _op(box, "jka_anim.saber_validate", icon='CHECKMARK',
+            text="Validate saber cfg")
+        box.prop(p, "saber_preset", text="Preset")
+        _op(box, "jka_anim.saber_preset_apply", icon='PLAY',
+            text="Apply saber preset")
 
         box = layout.box()
-        box.label(text="Check (Segments base path + character)")
-        box.operator("jka_anim.check_run", icon='CHECKMARK')
+        box.label(text="Check (Base Path + Character)")
+        _op(box, "jka_anim.check_run", icon='CHECKMARK', text="Run check")
 
         box = layout.box()
         box.label(text="Fingers (12 bones: d1/d2/d4 x j1/j2 per hand)")
         row = box.row(align=True)
-        row.operator("jka_anim.finger_preset", text="Grasp", icon='BONE',
-                     preset='GRASP')
-        row.operator("jka_anim.finger_preset", text="Fist", icon='BONE',
-                     preset='FIST')
-        row.operator("jka_anim.finger_preset", text="Open", icon='BONE',
-                     preset='OPEN')
+        _op(row, "jka_anim.finger_preset", icon='BONE_DATA', text="Grasp",
+            preset='GRASP')
+        _op(row, "jka_anim.finger_preset", icon='BONE_DATA', text="Fist",
+            preset='FIST')
+        _op(row, "jka_anim.finger_preset", icon='BONE_DATA', text="Open",
+            preset='OPEN')
 
         box = layout.box()
         box.label(text="Results")
         for r in p.results:
             box.label(text=r.text, icon="ERROR" if r.is_error else "NONE")
 
-        if p.addon_dir:
-            layout.prop(p, "addon_dir")
+        box = layout.box()
+        box.label(text="Dependencies (leave empty when installed in "
+                      "Preferences)")
+        box.prop(p, "addon_dir", text="Jedi Academy Add-on Dir")
+        box.prop(p, "animkit_dir", text="AnimKit Dir (override)")
 
 
 CLASSES = (
@@ -337,9 +429,11 @@ def register():
         bpy.utils.register_class(cls)
     bpy.types.Scene.jka_anim = bpy.props.PointerProperty(
         type=JkaAnim_PropGroup)
+    persist.register()
 
 
 def unregister():
+    persist.unregister()
     del bpy.types.Scene.jka_anim
     for cls in reversed(CLASSES):
         bpy.utils.unregister_class(cls)

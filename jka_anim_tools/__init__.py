@@ -32,12 +32,13 @@ panel         N-panel UI + scene properties   (bpy)
 bl_info = {
     "name": "JKA Anim Tools",
     "author": "Jrbesse",
-    "version": (0, 2, 0),
+    "version": (0, 2, 2),
     "blender": (4, 1, 0),
     "location": "View3D > Sidebar (N) > JKA",
     "description": "JKA Ghoul2 animation suite: reference matching, rig prep "
-                   "and GLA export over the installed jediacademy addon; "
-                   "cfg editor (segments/events/saber) over shared animkit",
+                   "and GLA export over the separately-installed jediacademy "
+                   "addon; cfg editor (segments/events/saber) over bundled "
+                   "animkit",
     "category": "Import-Export",
 }
 

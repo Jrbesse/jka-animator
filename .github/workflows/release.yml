@@ -58,11 +58,11 @@ jobs:
     steps:
       - uses: actions/download-artifact@v4
         with:
-          name: jka-anim-suite-${{ needs.ver.outputs.version }}
+          name: jka-anim-tools-${{ needs.ver.outputs.version }}
           path: out
 
       - uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ needs.ver.outputs.version }}
-          files: out/jka-anim-suite-${{ needs.ver.outputs.version }}.zip
+          files: out/jka-anim-tools-${{ needs.ver.outputs.version }}.zip
           generate_notes: true
