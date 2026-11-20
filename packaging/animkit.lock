@@ -2,4 +2,4 @@
 # Read by .github/workflows/ci.yml and release.yml.
 # Bump deliberately: after changing this, run the unit tests + a local
 # release build before cutting a tag.
-10f7af8d7f2bd59422f2ad4068833f597d0fb1cb
+d3fa503724aef769ac82d09238d423ea22a0f72a
