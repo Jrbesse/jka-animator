@@ -71,13 +71,22 @@ def set_action_props(action, loop, fps):
 
     Writing a sub-property auto-allocates the pointer, the importer's own
     idiom. Raises JkaError when the property type is not registered (the
-    jediacademy addon is not loaded).
+    jediacademy addon is not loaded) or carries different fields (a
+    conflicting add-on registered its own G2SequenceProps — Sheng 5.1.1
+    retest).
     """
     if not hasattr(bpy.types.Action, "g2_sequence_prop"):
         raise JkaError(
             "the jediacademy addon's g2_sequence_prop Action property is "
             "not registered — enable the jediacademy addon (or set the "
             "'Add-on dir' field)")
+    if not _g2_shape_ok(_g2_registered_type()):
+        raise JkaError(
+            "the g2_sequence_prop registered in this Blender has no "
+            "loop_frame/fps fields — another add-on registered a "
+            "conflicting 'G2SequenceProps' class (a second or modified "
+            "Jedi Academy tools install). Disable it or install "
+            "jediacademy v2.1.0")
     action.g2_sequence_prop.loop_frame = bool(loop)
     action.g2_sequence_prop.fps = int(fps)
 
@@ -136,14 +145,25 @@ def add_strip(armature, action, start_frame, num_frames):
 
 def strip_for_action(armature, action):
     """The existing strip of ``action`` on any of the armature's NLA
-    tracks, or None."""
+    tracks, or None.
+
+    Crash-minimized (Sheng 5.1.1 crash, item 5): in a corrupted scene
+    an NLA strip's action pointer can be DANGLING — reading it is a
+    native access violation in Blender's Python binding that no Python
+    try/except can catch (his crash was exactly such a read). Strips
+    are named after their action (both the jediacademy importer's CFG
+    branch and this suite do that), so the scan looks up a candidate
+    BY NAME first — no action-pointer dereference — and dereferences
+    only the one candidate to confirm. A fresh import (no strip of that
+    name yet) dereferences nothing at all.
+    """
     anim = armature.animation_data
     if anim is None:
         return None
     for track in anim.nla_tracks:
-        for strip in track.strips:
-            if strip.action == action:
-                return strip
+        cand = track.strips.get(action.name)
+        if cand is not None and cand.action == action:
+            return cand
     return None
 
 
@@ -187,13 +207,86 @@ def purge_action(name):
     return old
 
 
+def _g2_shape_ok(rna):
+    """True when a g2_sequence_prop bl_rna carries the fields this suite
+    reads/writes (loop_frame bool, fps int).
+
+    A FALSE answer means ANOTHER add-on in the user's Blender registered
+    a property group with the SAME class name (G2SequenceProps) and
+    re-pointed Action.g2_sequence_prop — e.g. a second or locally-modified
+    Jedi Academy tools install (Sheng 5.1.1 retest, 2026-11-24: the
+    stray class lacked loop_frame and every read raised AttributeError).
+    Detecting it keeps every read a clean JkaError/None instead of a
+    traceback in the middle of a panel op.
+    """
+    if rna is None:
+        return False
+    return {"loop_frame", "fps"} <= {p.identifier
+                                      for p in rna.properties}
+
+
+def _g2_registered_type():
+    """The bl_rna of the g2_sequence_prop type ACTUALLY registered, or
+    None when unregistered.
+
+    5.x property objects are deferred (``.type`` is not introspectable),
+    so the type is read OFF AN ALLOCATED INSTANCE when possible; a fresh
+    probe action (a write allocates the pointer; a bare read may not) is
+    used only when nothing is allocated yet.
+    """
+    if not hasattr(bpy.types.Action, "g2_sequence_prop"):
+        return None
+    for a in bpy.data.actions:
+        p = a.g2_sequence_prop
+        if p is not None:
+            return p.bl_rna
+    probe = bpy.data.actions.new("__jka_g2_probe__")
+    try:
+        try:
+            probe.g2_sequence_prop.name = ""  # write allocates
+        except (AttributeError, TypeError):
+            pass
+        p = probe.g2_sequence_prop
+        return p.bl_rna if p is not None else None
+    finally:
+        bpy.data.actions.remove(probe)
+
+
+_G2_SHAPED_WARNED = False
+
+
+def _warn_shape():
+    global _G2_SHAPED_WARNED
+    if _G2_SHAPED_WARNED:
+        return
+    _G2_SHAPED_WARNED = True
+    print("jka_anim_tools: WARNING: the registered g2_sequence_prop has "
+          "no loop_frame/fps fields — another add-on in this Blender "
+          "registered a conflicting 'G2SequenceProps' class (a second "
+          "or modified Jedi Academy tools install?). Disable it or "
+          "install jediacademy v2.1.0; JKA loop/fps drift checks are "
+          "disabled until then.", flush=True)
+
+
 def action_props(action):
     """(loop, fps) from the action's g2_sequence_prop, or None when the
-    addon's property is absent (plain Blender action)."""
+    addon's property is absent (plain Blender action) or malformed (a
+    conflicting add-on registered a different G2SequenceProps).
+
+    The shape is checked on the ALLOCATED INSTANCE (``props.bl_rna``),
+    not a cached global: a mid-session (re)registration can re-point
+    Action.g2_sequence_prop at any time, and the instance's own type is
+    always the truth (a cached answer went stale in exactly Sheng's
+    session order: the conflicting class registered before our
+    ensure_addon ran).
+    """
     if action is None or not hasattr(bpy.types.Action, "g2_sequence_prop"):
         return None
     props = action.g2_sequence_prop
     if props is None:
+        return None
+    if not _g2_shape_ok(props.bl_rna):
+        _warn_shape()
         return None
     return bool(props.loop_frame), int(props.fps)
 

@@ -32,7 +32,7 @@ panel         N-panel UI + scene properties   (bpy)
 bl_info = {
     "name": "JKA Anim Tools",
     "author": "Jrbesse",
-    "version": (0, 2, 4),
+    "version": (0, 2, 5),
     "blender": (4, 1, 0),
     "location": "View3D > Sidebar (N) > JKA",
     "description": "JKA Ghoul2 animation suite: reference matching, rig prep, "

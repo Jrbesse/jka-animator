@@ -164,6 +164,41 @@ def t_ref_gla_errors():
 check("derive_ref_gla errors name the missing piece", t_ref_gla_errors)
 
 
+def t_ref_gla_folder_pick():
+    """Item 4 (Sheng 5.1.1 retest): the user picks the FOLDER, not the
+    .gla — resolve it instead of failing in the importer."""
+    base = _make_tree()
+    # folder whose own-name .gla exists (mychar -> mychar.gla)
+    d1 = os.path.join(base, "models/players/mychar")
+    assert derive_ref_gla(base, "mychar", explicit=d1) == \
+        os.path.join(d1, "mychar.gla")
+    # Sheng's shape: a copy dir holding a single .gla under another name
+    d2 = os.path.join(base, "models", "players", "_humanoid - Copy")
+    os.makedirs(d2, exist_ok=True)
+    open(os.path.join(d2, "_humanoid.gla"), "w").close()
+    assert derive_ref_gla(base, "mychar", explicit=d2) == \
+        os.path.join(d2, "_humanoid.gla")
+    # model.gla convention (NPC folders)
+    d3 = os.path.join(base, "models", "players", "npc_x")
+    os.makedirs(d3, exist_ok=True)
+    open(os.path.join(d3, "model.gla"), "w").close()
+    assert derive_ref_gla(base, "mychar", explicit=d3) == \
+        os.path.join(d3, "model.gla")
+    # several .gla, no own-name: a clear error, not the importer's
+    d4 = os.path.join(base, "models", "players", "two")
+    os.makedirs(d4, exist_ok=True)
+    open(os.path.join(d4, "a.gla"), "w").close()
+    open(os.path.join(d4, "b.gla"), "w").close()
+    expect_error("ref gla: folder with several .gla",
+                 lambda: derive_ref_gla(base, "mychar", explicit=d4))
+    # empty folder: a clear error
+    d5 = os.path.join(base, "models", "players", "empty")
+    os.makedirs(d5, exist_ok=True)
+    expect_error("ref gla: empty folder",
+                 lambda: derive_ref_gla(base, "mychar", explicit=d5))
+check("derive_ref_gla: folder pick resolves the .gla", t_ref_gla_folder_pick)
+
+
 def t_export_derived():
     base = _make_tree()
     out, b, gl, ref = derive_export_paths(base, "mychar")

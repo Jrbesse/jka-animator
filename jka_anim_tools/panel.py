@@ -73,6 +73,19 @@ _UI_KWARG_NAMES = ("text_ctxt", "translate", "emboss", "depress",
                    "icon_value", "search_weight")
 
 
+def _addon_version():
+    """The installed add-on's version string (panel header).
+
+    "Which build am I actually running" must be visible: a user can
+    have several Blenders with different installed versions, and a
+    "settings not loading" report is meaningless without it (Sheng
+    item 3 — his 5.1 install lagged behind)."""
+    import sys
+    mod = sys.modules.get("jka_anim_tools")
+    v = getattr(mod, "bl_info", {}).get("version", ())
+    return ".".join(str(x) for x in v) or "?"
+
+
 def _op(layout, op_idname, icon=None, text=None, **kw):
     """``layout.operator`` that is safe across Blender 4.x/5.x.
 
@@ -348,6 +361,14 @@ class JKA_PT_Main(bpy.types.Panel):
         persist.maybe_schedule_restore(context.scene)
         layout = self.layout
 
+        # version + settings state at the top: "settings not loading"
+        # reports need the installed version in ONE Blender and the
+        # settings file location in front of us (Sheng item 3, 5.1)
+        _restored = "loaded" if context.scene.get(persist._MARKER) else "NOT loaded"
+        layout.label(text=f"v{_addon_version()} · settings {_restored}",
+                     icon='PREFERENCES')
+        layout.label(text=persist.settings_path())
+
         box = layout.box()
         box.label(text="Base (set once — everything derives from it)",
                   icon='FILE_FOLDER')
@@ -399,13 +420,14 @@ class JKA_PT_Main(bpy.types.Panel):
             text="Load segments")
         if p.segments:
             box.prop(p, "seg_filter", text="Filter")
+            box.label(text="click a row to select it", icon='INFO')
         for i in _matched_segments(p)[:SEG_ROW_CAP]:
             s = p.segments[i]
             icon = ("MODIFIER_OFF" if s.drift
                     else "ACTION" if s.has_action else "NONE")
-            box.prop(p, "seg_selected",
-                     text=f"{s.name}  {s.first_frame}..",
-                     index=i, icon=icon)
+            prefix = "» " if i == p.seg_selected else ""
+            _op(box, "jka_anim.segment_select", index=i,
+                text=f"{prefix}{s.name}  {s.first_frame}..", icon=icon)
         matched = len(_matched_segments(p))
         if p.segments and matched > SEG_ROW_CAP:
             box.label(text=f"… {matched - SEG_ROW_CAP} more match the "
@@ -459,6 +481,11 @@ class JKA_PT_Main(bpy.types.Panel):
 
         box = layout.box()
         box.label(text="Labels (timeline markers)")
+        box.label(text="markers come from the LOADED SEGMENTS (the "
+                       "animation.cfg shown after Load) — if they don't "
+                       "match the animation, the cfg and the GLA have "
+                       "diverged (edited cfg not re-exported, or the "
+                       "frames came from a different GLA)", icon='INFO')
         _op(box, "jka_anim.markers_from_segments", icon='MARKER_ON',
             text="Markers from segments")
         _op(box, "jka_anim.markers_clear", icon='X', text="Clear markers")

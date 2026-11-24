@@ -72,10 +72,15 @@ def settings_path():
 def save(p):
     """Write p's persisted fields to settings.json (atomic replace).
 
-    Silently skipped while a restore is in flight (the restore's own
-    writes would not be a change) or when the file cannot be written
+    Skipped while a restore is in flight (the restore's own writes would
+    not be a change), in headless/background runs (ENABLED=None defaults
+    to "interactive only" — a driver setting scene properties must never
+    clobber the user's real settings file; the 5.1 repro run did exactly
+    that until this gate), or when the file cannot be written
     (read-only home — the panel keeps working, settings just don't stick).
     """
+    if not _enabled():
+        return
     if _RESTORING:
         return
     data = {k: getattr(p, k) for k in PERSISTED if hasattr(p, k)}
@@ -190,10 +195,23 @@ def ensure_restored(scene):
 
 
 def _on_load_post(dummy=None):
+    """Restore EVERY restored-able scene, not just the context one.
+
+    In some Blender builds the load_post context still points at the OLD
+    scene (or none), so ``bpy.context.scene`` alone can miss the scene
+    that was just opened (Sheng item 3: settings not loading on 5.1 —
+    the mechanism verified on 5.1.1, so the missing piece was context/
+    version state, not the file format). Iterating bpy.data.scenes is
+    cheap (a handful) and context-independent; the marker keeps it
+    idempotent.
+    """
     try:
-        scene = bpy.context.scene
-        p = getattr(scene, "jka_anim", None)
-        if p is not None:
+        for scene in bpy.data.scenes:
+            if scene.get(_MARKER):
+                continue
+            p = getattr(scene, "jka_anim", None)
+            if p is None:
+                continue
             restore(p)
             _mark(scene)
     except Exception as e:  # a settings failure must not block a file open

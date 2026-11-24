@@ -80,7 +80,13 @@ class JKA_OT_LoadReference(bpy.types.Operator):
                     break
         if ad is not None and action is not None:
             ad.action = action
-            n_fc = len(getattr(action, "fcurves", ()) or ())
+            # 5.x gotcha: keys live in the layered action
+            # (action.layers[].strips[].channelbags) — the bare
+            # action.fcurves collection reports 0 on 5.x for a fully
+            # keyed action, which read like a failed import (Sheng's
+            # ALL-mode log: "0 fcurves" for 21,376 frames)
+            from . import nla
+            n_fc = len(nla._action_fcurves(action))
             sc = context.scene
             notes.append(
                 f"action '{action.name}': {n_fc} fcurves, frames "

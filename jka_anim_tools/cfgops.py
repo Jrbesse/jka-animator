@@ -156,12 +156,40 @@ class JKA_OT_SegmentsLoad(bpy.types.Operator):
             ak = _ak(p)
             segs, warns = anims.load_segments(ak, p.basepath, p.character)
             _sync_segments(p, segs, _drift_map(p, segs))
-            _sync_results(p, [(f"{len(segs)} segments loaded", False)]
+            # show the EXACT cfg the rows (and the timeline markers built
+            # from them) come from — a markers-don't-match report is
+            # usually cfg-vs-GLA drift, and this line says which cfg the
+            # markers were cut from (Sheng 5.1.1 retest, item 6).
+            from .anims import cfg_path
+            cfg = cfg_path(p.basepath, p.character, "animation")
+            _sync_results(p, [(f"{len(segs)} segments loaded from {cfg}",
+                               False)]
                           + [(w, False) for w in warns])
             return {"FINISHED"}
         except JkaError as e:
             self.report({'ERROR'}, str(e))
             return {'CANCELLED'}
+
+
+class JKA_OT_SegmentSelect(bpy.types.Operator):
+    """Select a segment row in the Segments list (the row index the
+    button is drawn for). The rows are BUTTONS, not a numeric field —
+    the old per-row 'selected index' widget displayed the shared scalar
+    and dragging it changed the selection everywhere (Sheng 5.1.1
+    retest: 'it changed it for all of them')."""
+    bl_idname = "jka_anim.segment_select"
+    bl_label = "Select segment"
+    bl_description = "Select this segment row (Jump / Apply / Import " \
+                     "act on the selected row)"
+
+    index: bpy.props.IntProperty(name="Row index")
+
+    def execute(self, context):
+        p = context.scene.jka_anim
+        if not p.segments:
+            return {'CANCELLED'}
+        p.seg_selected = min(max(self.index, 0), len(p.segments) - 1)
+        return {'FINISHED'}
 
 
 class JKA_OT_SegmentJump(bpy.types.Operator):
@@ -657,6 +685,7 @@ class JKA_OT_CheckRun(bpy.types.Operator):
 
 CLASSES = (
     JKA_OT_SegmentsLoad,
+    JKA_OT_SegmentSelect,
     JKA_OT_SegmentJump,
     JKA_OT_SegmentApply,
     JKA_OT_SegmentAdd,

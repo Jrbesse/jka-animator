@@ -90,6 +90,30 @@ def derive_ref_gla(basepath, character, explicit=""):
     JkaError when nothing can be derived.
     """
     if explicit:
+        if os.path.isdir(explicit):
+            # The user picked the FOLDER (the file browser lands on
+            # folders), not the .gla — resolve it instead of letting
+            # the importer fail with "`.gla file <folder> not found in
+            # basepath`" (Sheng 5.1.1 retest, item 4).
+            d = os.path.abspath(explicit)
+            base_name = os.path.basename(d.rstrip(os.sep + "/"))
+            for cand in (f"{base_name}.gla", "model.gla"):
+                f = os.path.join(d, cand)
+                if os.path.isfile(f):
+                    return f
+            try:
+                glas = sorted(f for f in os.listdir(d)
+                              if f.lower().endswith(".gla")
+                              and os.path.isfile(os.path.join(d, f)))
+            except OSError:
+                glas = []
+            if len(glas) == 1:
+                return os.path.join(d, glas[0])
+            found = ", ".join(glas) if glas else "no .gla files"
+            raise JkaError(
+                f"you picked the FOLDER {explicit!r}, not a .gla file — "
+                f"it holds {found}; pick the .gla directly or set the "
+                "Base Path + Character and leave Reference GLA empty")
         if os.path.isabs(explicit):
             return os.path.abspath(explicit)
         if not basepath:
